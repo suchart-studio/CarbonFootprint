@@ -3,260 +3,210 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>แพลตฟอร์มรักษ์โลก จ.ขอนแก่น</title>
+    <title>แดชบอร์ดสิ่งแวดล้อม จ.ขอนแก่น</title>
     
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&display=swap" rel="stylesheet">
-    
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <style>
         :root {
-            --bg-body: #f4fcf7;
-            --bg-card: #ffffff;
             --primary-green: #2ecc71;
             --dark-green: #27ae60;
             --text-main: #2c3e50;
-            --border-color: #d1d5db;
         }
-
-        body { 
+        
+        body, html { 
+            margin: 0; padding: 0; 
+            height: 100%; 
             font-family: 'Chakra Petch', sans-serif; 
-            background-color: var(--bg-body); 
-            color: var(--text-main);
-            margin: 0; padding: 15px;
+            overflow: hidden; 
         }
-        
-        .container { 
-            max-width: 650px; margin: auto; 
-            background: var(--bg-card); 
-            padding: 25px; 
+
+        #cityMap { 
+            height: 100vh; 
+            width: 100vw; 
+            z-index: 1;
+        }
+
+        /* ปุ่มกลับ ลอยมุมซ้ายบน */
+        .back-btn-float {
+            position: absolute;
+            top: 20px; left: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(8px);
+            padding: 10px 15px;
+            border-radius: 12px;
+            text-decoration: none;
+            color: #4b5563;
+            font-size: 16px;
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            z-index: 1000;
+            pointer-events: auto;
+            border: 1px solid #e5e7eb;
+            transition: 0.3s;
+        }
+        .back-btn-float:hover { background: white; color: var(--dark-green); }
+
+        /* คอนเทนเนอร์ลอยกลางจอ */
+        .floating-panel {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 400px;
+            z-index: 1000;
+            pointer-events: none; 
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        /* กล่องข้อมูลสรุป */
+        .summary-grid { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            gap: 10px; 
+            pointer-events: auto;
+        }
+        .summary-card { 
+            padding: 15px 10px; 
             border-radius: 12px; 
-            box-shadow: 0 4px 15px rgba(46, 204, 113, 0.1); 
-            border-top: 5px solid var(--primary-green);
-        }
-
-        h2 { text-align: center; color: var(--dark-green); margin-top: 0; font-size: 24px;}
-        h3 { color: #34495e; font-size: 18px; border-bottom: 2px solid #e5e7eb; padding-bottom: 8px; margin-top: 25px; }
-        
-        label { display: block; margin-top: 15px; font-size: 15px; font-weight: 600; color: #4b5563; }
-        
-        input { 
-            width: 100%; padding: 12px; margin-top: 5px;
-            background: #f9fafb; 
-            border: 1px solid var(--border-color); 
-            color: var(--text-main); border-radius: 8px; 
-            box-sizing: border-box; font-family: 'Chakra Petch', sans-serif; font-size: 16px;
-            transition: all 0.3s ease;
-        }
-        input:focus { outline: none; border-color: var(--primary-green); background: #fff; box-shadow: 0 0 0 3px rgba(46,204,113,0.2); }
-        
-        .waste-section { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: #f0fdf4; padding: 15px; border-radius: 8px; border: 1px solid #bbf7d0; margin-top: 5px;}
-        .waste-section label { margin-top: 5px; font-size: 14px; }
-        
-        .btn-primary { 
-            width: 100%; margin-top: 25px; padding: 16px; 
-            background: var(--primary-green); 
+            text-align: center; 
             color: white; 
-            border: none; border-radius: 8px;
-            cursor: pointer; font-weight: bold; font-size: 18px;
-            transition: all 0.3s; box-shadow: 0 4px 6px rgba(46,204,113,0.2);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            backdrop-filter: blur(8px); 
         }
-        .btn-primary:hover { background: var(--dark-green); transform: translateY(-2px); }
+        .card-red { background: rgba(239, 68, 68, 0.9); border: 1px solid #fca5a5; }
+        .card-green { background: rgba(16, 185, 129, 0.9); border: 1px solid #6ee7b7; }
         
-        .btn-location {
-            width: 100%; padding: 12px; background: #e5e7eb; color: #4b5563; border: none; border-radius: 8px;
-            cursor: pointer; font-family: 'Chakra Petch'; margin-bottom: 10px; font-weight: 600; transition: 0.3s;
-        }
-        .btn-location:hover { background: #d1d5db; }
-        
-        .coord-inputs { display: flex; gap: 10px; }
-        .coord-inputs input { background: #e5e7eb; border: none; color: #6b7280; font-size: 14px;}
-        
-        .result-box { margin-top: 30px; padding: 25px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; display: none; }
-        .chart-container { height: 300px; width: 100%; margin-top: 20px; }
-        
-        #pickerMap, #resultMap { height: 250px; width: 100%; border-radius: 8px; border: 1px solid var(--border-color); z-index: 1;}
-        #resultMap { height: 350px; margin-top: 20px; }
+        .summary-card h4 { margin: 0; font-size: 12px; font-weight: normal; opacity: 0.9; }
+        .summary-card h1 { margin: 5px 0 0 0; font-size: 24px; font-weight: bold; }
+        .summary-card p { margin: 0; font-size: 11px; opacity: 0.8; }
 
-        .rating-badge { display: inline-block; padding: 6px 16px; color: white; font-weight: bold; border-radius: 20px; font-size: 18px; margin-top: 5px;}
+        /* แถบสีแสดงสถานะ (Legend Bar) */
+        .status-bar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(8px);
+            padding: 10px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            pointer-events: auto;
+            border: 1px solid #e5e7eb;
+        }
+        .status-item {
+            display: flex;
+            align-items: center;
+            font-size: 11px;
+            font-weight: bold;
+            color: #4b5563;
+            gap: 5px;
+        }
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: 0 0 4px rgba(0,0,0,0.2);
+        }
+
+        #loading {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255,255,255,0.9);
+            padding: 15px 25px;
+            border-radius: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            z-index: 2000;
+            font-weight: bold;
+            color: #4b5563;
+        }
+
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h2>KHON KAEN LOW CARBON CITY</h2>
-    <p style="text-align: center; color: #6b7280; font-size: 14px; margin-top: -10px;">ระบบประเมินคาร์บอนฟุตพริ้นท์และคาร์บอนเครดิต</p>
-    
-    <form id="carbonForm">
-        <label>🏢 ชื่อหน่วยงาน / องค์กร / ครัวเรือน:</label>
-        <input type="text" id="orgName" required placeholder="ระบุชื่อเพื่อบันทึกข้อมูล...">
+    <!-- ข้อความโหลด -->
+    <div id="loading">⏳ กำลังรวบรวมข้อมูลพื้นที่...</div>
 
-        <h3>🔴 ส่วนที่ 1: การปล่อยก๊าซเรือนกระจก</h3>
-        <label>⚡ ปริมาณการใช้ไฟฟ้า (หน่วย/เดือน):</label>
-        <input type="number" id="electricityUsage" value="0" min="0" step="any" required>
-        <label>⛽ ปริมาณการใช้น้ำมันเชื้อเพลิง (ลิตร/เดือน):</label>
-        <input type="number" id="fuelUsage" value="0" min="0" step="any" required>
+    <!-- ปุ่มกลับ -->
+    <a href="index.html" class="back-btn-float">⬅️ กลับ</a>
 
-        <h3>🟢 ส่วนที่ 2: การลดก๊าซเรือนกระจก</h3>
-        <label>♻️ ขยะที่คัดแยกเพื่อส่งรีไซเคิล (กิโลกรัม/เดือน):</label>
-        <div class="waste-section">
-            <div><label>ขวดพลาสติก:</label><input type="number" id="wastePlastic" value="0" min="0" step="any"></div>
-            <div><label>กระดาษ/ลัง:</label><input type="number" id="wastePaper" value="0" min="0" step="any"></div>
-            <div><label>ขวดแก้ว:</label><input type="number" id="wasteGlass" value="0" min="0" step="any"></div>
-            <div><label>โลหะ/กระป๋อง:</label><input type="number" id="wasteMetal" value="0" min="0" step="any"></div>
-        </div>
+    <!-- แผงข้อมูลลอยตัว (จัดกึ่งกลางด้านบน) -->
+    <div class="floating-panel">
         
-        <label>☀️ ไฟฟ้าที่ลดได้ หรือผลิตจากโซลาร์เซลล์ (หน่วย/เดือน):</label>
-        <input type="number" id="savedElectricity" value="0" min="0" step="any" required>
-
-        <h3>📍 ส่วนที่ 3: ตำแหน่งที่ตั้ง</h3>
-        <button type="button" class="btn-location" id="getLocationBtn">🎯 กดเพื่อดึงพิกัดตำแหน่งปัจจุบัน</button>
-        <p style="text-align: center; font-size: 13px; color: #9ca3af; margin: 5px 0 10px 0;">(หรือเลื่อนและแตะบนแผนที่เพื่อปักหมุดด้วยตนเอง)</p>
-        <div id="pickerMap"></div>
-
-        <div class="coord-inputs" style="margin-top: 10px;">
-            <input type="text" id="latitude" readonly required placeholder="ละติจูด">
-            <input type="text" id="longitude" readonly required placeholder="ลองจิจูด">
+        <!-- ป้ายสรุปข้อมูล (ถูกซ่อนตอนแรก) -->
+        <div class="summary-grid" id="summaryGrid" style="display: none;">
+            <div class="summary-card card-red">
+                <h4>🔴 ปล่อยคาร์บอนรวม</h4>
+                <h1 id="totalCityFootprint">0.00</h1>
+                <p>kgCO2e</p>
+            </div>
+            <div class="summary-card card-green">
+                <h4>🟢 ลดคาร์บอนรวม</h4>
+                <h1 id="totalCityCredit">0.00</h1>
+                <p>kgCO2e</p>
+            </div>
         </div>
 
-        <button type="submit" class="btn-primary">บันทึกข้อมูลและดูผลประเมิน</button>
-    </form>
+        <!-- แถบสีบอกสถานะหมุดบนแผนที่ (ถูกซ่อนตอนแรก) -->
+        <div class="status-bar" id="statusBar" style="display: none;">
+            <div class="status-item"><span class="dot" style="background: #10b981;"></span>ดีเยี่ยม</div>
+            <div class="status-item"><span class="dot" style="background: #0ea5e9;"></span>ดีมาก</div>
+            <div class="status-item"><span class="dot" style="background: #f59e0b;"></span>ดี</div>
+            <div class="status-item"><span class="dot" style="background: #ef4444;"></span>ปรับปรุง</div>
+        </div>
 
-    <div class="result-box" id="resultBox">
-        <div id="reportContent"></div>
-        <div class="chart-container"><canvas id="resultChart"></canvas></div>
-        <h3 style="text-align: center; margin-top:30px;">🗺️ แผนที่เครือข่ายรักษ์โลกขอนแก่น</h3>
-        <div id="resultMap"></div>
     </div>
-    
-    <a href="map.html" style="display: block; text-align: center; margin-top: 20px; color: var(--dark-green); text-decoration: none; font-weight: bold; background: #e6f8ec; padding: 12px; border-radius: 8px; border: 1px solid #bbf7d0; transition: 0.3s;">📊 ไปที่หน้าแดชบอร์ดสรุปผลรวมทั้งจังหวัด</a>
-</div>
+
+    <!-- แผนที่เต็มหน้าจอ -->
+    <div id="cityMap"></div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
-    import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 
     const firebaseConfig = { apiKey: "AIzaSyDMMwciq6QoLSaWK6xfdr0U3ynyahtoaSk", authDomain: "studio-a33fe.firebaseapp.com", databaseURL: "https://studio-a33fe-default-rtdb.asia-southeast1.firebasedatabase.app", projectId: "studio-a33fe", storageBucket: "studio-a33fe.firebasestorage.app", messagingSenderId: "753539109404", appId: "1:753539109404:web:3d916565373b192fe645d9" };
     const app = initializeApp(firebaseConfig); const db = getFirestore(app);
 
-    const EF_ELECTRICITY = 0.4999, EF_DIESEL = 2.7446;      
-    const EF_PLASTIC = 1.5, EF_PAPER = 0.9, EF_GLASS = 0.3, EF_METAL = 2.0;
-
-    let myChart = null; let resultMap = null; 
-    Chart.defaults.font.family = "'Chakra Petch', sans-serif";
-    Chart.defaults.color = '#4b5563';
-
-    // แผนที่ OSM โทนสว่างปกติ
-    const mapTile = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
-    const khonkaenCenter = [16.4322, 102.8236]; 
-    const pickerMap = L.map('pickerMap').setView(khonkaenCenter, 13);
-    L.tileLayer(mapTile, { attribution: '&copy; OpenStreetMap' }).addTo(pickerMap);
-
-    let pickerMarker = L.marker(khonkaenCenter, {draggable: true}).addTo(pickerMap);
-    
-    function updateInputs(latlng) {
-        document.getElementById('latitude').value = latlng.lat.toFixed(6);
-        document.getElementById('longitude').value = latlng.lng.toFixed(6);
-    }
-    pickerMarker.on('dragend', function (e) { updateInputs(pickerMarker.getLatLng()); });
-    pickerMap.on('click', function(e) { pickerMarker.setLatLng(e.latlng); updateInputs(e.latlng); });
-
-    document.getElementById('getLocationBtn').addEventListener('click', () => {
-        const btn = document.getElementById('getLocationBtn');
-        btn.innerText = "⏳ กำลังค้นหาตำแหน่ง...";
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    const latlng = [position.coords.latitude, position.coords.longitude];
-                    pickerMap.setView(latlng, 16); pickerMarker.setLatLng(latlng); updateInputs(pickerMarker.getLatLng());
-                    btn.innerText = "✅ พบตำแหน่งของคุณแล้ว";
-                    btn.style.backgroundColor = "#d1fae5"; btn.style.color = "#047857";
-                },
-                (error) => { alert("ไม่สามารถดึงตำแหน่งได้ กรุณาแตะเลือกบนแผนที่โดยตรงครับ"); btn.innerText = "🎯 กดเพื่อดึงพิกัดตำแหน่งปัจจุบัน"; }
-            );
-        }
-    });
+    const cityMap = L.map('cityMap', { zoomControl: false }).setView([16.4322, 102.8236], 13);
+    L.control.zoom({ position: 'bottomright' }).addTo(cityMap);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' }).addTo(cityMap);
 
     const getMarkerIcon = (rating) => {
         let color = 'red'; if (rating === 'ดีเยี่ยม') color = 'green'; else if (rating === 'ดีมาก') color = 'blue'; else if (rating === 'ดี') color = 'gold';
         return new L.Icon({ iconUrl: `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-${color}.png`, shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png', iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34] });
     };
 
-    document.getElementById('carbonForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const lat = parseFloat(document.getElementById('latitude').value);
-        const lng = parseFloat(document.getElementById('longitude').value);
-        if (isNaN(lat) || isNaN(lng)) return alert("กรุณาระบุพิกัดสถานที่ในแผนที่ก่อนบันทึกข้อมูลครับ");
-
-        const orgName = document.getElementById('orgName').value;
-        const totalFootprint = ((parseFloat(document.getElementById('electricityUsage').value)||0)*EF_ELECTRICITY) + ((parseFloat(document.getElementById('fuelUsage').value)||0)*EF_DIESEL);
-        const totalCredit = ((parseFloat(document.getElementById('wastePlastic').value)||0)*EF_PLASTIC) + ((parseFloat(document.getElementById('wastePaper').value)||0)*EF_PAPER) + ((parseFloat(document.getElementById('wasteGlass').value)||0)*EF_GLASS) + ((parseFloat(document.getElementById('wasteMetal').value)||0)*EF_METAL) + ((parseFloat(document.getElementById('savedElectricity').value)||0)*EF_ELECTRICITY);
-
-        let compensationPercent = totalFootprint > 0 ? (totalCredit / totalFootprint) * 100 : (totalCredit > 0 ? 100 : 0);
-        let rating = "ต้องปรับปรุง"; let badgeColor = "#ef4444";
-        if (compensationPercent >= 50) { rating = "ดีเยี่ยม"; badgeColor = "#10b981"; } 
-        else if (compensationPercent >= 30) { rating = "ดีมาก"; badgeColor = "#0ea5e9"; } 
-        else if (compensationPercent >= 10) { rating = "ดี"; badgeColor = "#f59e0b"; } 
-
-        const reportData = { organization: orgName, totalFootprint_kgCO2: Number(totalFootprint.toFixed(2)), totalCredit_kgCO2: Number(totalCredit.toFixed(2)), compensationPercent: Number(compensationPercent.toFixed(2)), rating: rating, latitude: lat, longitude: lng, timestamp: new Date() };
-
-        const submitBtn = document.querySelector('button[type="submit"]');
-        submitBtn.innerText = "⏳ กำลังบันทึกข้อมูล..."; submitBtn.disabled = true;
-
+    async function loadDashboardData() {
+        let sumFootprint = 0; let sumCredit = 0;
         try {
-            await addDoc(collection(db, "carbon_reports"), reportData);
-            
-            const resultBox = document.getElementById('resultBox');
-            resultBox.style.display = 'block';
-            document.getElementById('reportContent').innerHTML = `
-                <h3 style="text-align:center; margin-top:0;">📝 สรุปผลการประเมิน</h3>
-                <p style="text-align:center; font-size: 18px; font-weight:bold; color: #1f2937;">${orgName}</p>
-                <p style="color:#ef4444; font-size:16px;">🔴 ปล่อยคาร์บอน: <strong>${reportData.totalFootprint_kgCO2}</strong> kgCO2e</p>
-                <p style="color:#10b981; font-size:16px;">🟢 ลดคาร์บอนได้: <strong>${reportData.totalCredit_kgCO2}</strong> kgCO2e</p>
-                <div style="text-align: center; margin-top: 20px;">
-                    <p style="margin: 0; color: #6b7280; font-size: 14px;">ระดับการรักษาสิ่งแวดล้อม</p>
-                    <span class="rating-badge" style="background-color: ${badgeColor};">${rating}</span>
-                    <p style="color:#4b5563; font-size:14px; margin-top:8px;">(สามารถชดเชยคาร์บอนได้ ${reportData.compensationPercent}%)</p>
-                </div>
-            `;
-
-            const ctx = document.getElementById('resultChart').getContext('2d');
-            if (myChart) myChart.destroy();
-            myChart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: ['ปริมาณก๊าซเรือนกระจก (kgCO2e)'],
-                    datasets: [
-                        { label: '🔴 ปล่อย (Footprint)', data: [reportData.totalFootprint_kgCO2], backgroundColor: '#fca5a5', borderColor: '#ef4444', borderWidth: 1 },
-                        { label: '🟢 ลดได้ (Credit)', data: [reportData.totalCredit_kgCO2], backgroundColor: '#6ee7b7', borderColor: '#10b981', borderWidth: 1 }
-                    ]
-                },
-                options: { responsive: true, maintainAspectRatio: false }
-            });
-
-            if (!resultMap) {
-                resultMap = L.map('resultMap').setView([lat, lng], 13);
-                L.tileLayer(mapTile, { attribution: '&copy; OpenStreetMap' }).addTo(resultMap);
-            } else { resultMap.setView([lat, lng], 13); resultMap.eachLayer((layer) => { if (layer instanceof L.Marker) resultMap.removeLayer(layer); }); }
-
-            setTimeout(() => { resultMap.invalidateSize(); }, 300);
-            resultBox.scrollIntoView({ behavior: 'smooth' });
-
             const querySnapshot = await getDocs(collection(db, "carbon_reports"));
             querySnapshot.forEach((doc) => {
                 const data = doc.data();
+                sumFootprint += data.totalFootprint_kgCO2 || 0; sumCredit += data.totalCredit_kgCO2 || 0;
                 if (data.latitude && data.longitude) {
-                    const marker = L.marker([data.latitude, data.longitude], { icon: getMarkerIcon(data.rating) }).addTo(resultMap);
-                    marker.bindPopup(`<div style="font-family: 'Chakra Petch'; text-align:center;"><b>${data.organization}</b><br>ระดับ: <span style="color:${badgeColor}; font-weight:bold;">${data.rating}</span></div>`);
-                    if (data.organization === orgName) marker.openPopup();
+                    let badgeColor = "#ef4444"; if (data.rating === "ดีเยี่ยม") badgeColor = "#10b981"; else if (data.rating === "ดีมาก") badgeColor = "#0ea5e9"; else if (data.rating === "ดี") badgeColor = "#f59e0b";
+                    const marker = L.marker([data.latitude, data.longitude], { icon: getMarkerIcon(data.rating) }).addTo(cityMap);
+                    marker.bindPopup(`<div style="font-family: 'Chakra Petch'; text-align:center;"><strong style="font-size:15px;">${data.organization}</strong><br><br>ระดับการรักษาสิ่งแวดล้อม:<br><span style="background:${badgeColor}; color:white; padding: 2px 8px; border-radius: 12px; display:inline-block; margin-top:5px; font-weight:bold;">${data.rating}</span></div>`);
                 }
             });
-        } catch (error) { alert("เกิดข้อผิดพลาดในการบันทึกข้อมูล กรุณาลองใหม่อีกครั้ง"); } finally { submitBtn.innerText = "บันทึกข้อมูลและดูผลประเมิน"; submitBtn.disabled = false; }
-    });
+            document.getElementById('totalCityFootprint').innerText = sumFootprint.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('totalCityCredit').innerText = sumCredit.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            
+            // ซ่อนข้อความโหลด และแสดงกล่องข้อมูล + แถบสถานะ
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('summaryGrid').style.display = 'grid';
+            document.getElementById('statusBar').style.display = 'flex';
+        } catch (error) { document.getElementById('loading').innerText = "❌ เกิดข้อผิดพลาดในการดึงข้อมูล"; }
+    }
+    loadDashboardData();
 </script>
 </body>
 </html>
