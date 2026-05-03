@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Khon Kaen Carbon Tracker</title>
+    
+    <!-- นำเข้า Font Chakra Petch -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body { 
+            font-family: 'Chakra Petch', sans-serif; 
+            background-color: #f8fafc; 
+            margin: 0; 
+            padding: 20px;
+            color: #1e293b;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #0f172a;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .header a { color: #38bdf8; text-decoration: none; font-weight: bold; }
+        
+        .table-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            overflow-x: auto; /* ให้เลื่อนซ้ายขวาได้บนมือถือ */
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 800px;
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        th { background-color: #f1f5f9; color: #475569; font-weight: 700; }
+        tr:hover { background-color: #f8fafc; }
+        
+        .badge {
+            padding: 4px 8px; border-radius: 4px; color: white; font-size: 14px; font-weight: bold;
+        }
+        .btn {
+            padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; font-family: 'Chakra Petch'; font-weight: bold; color: white;
+        }
+        .btn-edit { background-color: #f59e0b; margin-right: 5px; }
+        .btn-edit:hover { background-color: #d97706; }
+        .btn-delete { background-color: #ef4444; }
+        .btn-delete:hover { background-color: #dc2626; }
+
+        /* สไตล์หน้าต่างแก้ไข (Modal) */
+        .modal {
+            display: none; position: fixed; z-index: 10; left: 0; top: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.5); justify-content: center; align-items: center;
+        }
+        .modal-content {
+            background: white; padding: 25px; border-radius: 8px; width: 90%; max-width: 400px;
+        }
+        .modal-content h3 { margin-top: 0; }
+        .modal-content label { display: block; margin-top: 10px; font-weight: bold; }
+        .modal-content input {
+            width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-family: 'Chakra Petch';
+        }
+        .modal-actions { margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px; }
+        .btn-save { background-color: #10b981; }
+        .btn-cancel { background-color: #64748b; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h2 style="margin: 0;">⚙️ ระบบจัดการข้อมูล (Admin)</h2>
+        <a href="index.html">🏠 ไปหน้าฟอร์ม</a>
+    </div>
+
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>วันที่/เวลา</th>
+                    <th>ชื่อหน่วยงาน</th>
+                    <th>ปล่อย (kgCO2)</th>
+                    <th>ลดได้ (kgCO2)</th>
+                    <th>ชดเชย (%)</th>
+                    <th>ระดับ</th>
+                    <th>จัดการ</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody">
+                <tr><td colspan="7" style="text-align: center;">⏳ กำลังโหลดข้อมูล...</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Modal สำหรับแก้ไขข้อมูล -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <h3>✏️ แก้ไขข้อมูล</h3>
+            <input type="hidden" id="editDocId">
+            
+            <label>ชื่อหน่วยงาน:</label>
+            <input type="text" id="editOrgName" required>
+            
+            <label>ปริมาณปล่อยคาร์บอน (Footprint):</label>
+            <input type="number" id="editFootprint" step="any" required>
+            
+            <label>ปริมาณลดคาร์บอน (Credit):</label>
+            <input type="number" id="editCredit" step="any" required>
+            
+            <p style="font-size: 13px; color: #64748b; margin-top: 15px;">* % การชดเชยและระดับการประเมิน จะถูกคำนวณใหม่อัตโนมัติเมื่อกดบันทึก</p>
+            
+            <div class="modal-actions">
+                <button class="btn btn-cancel" onclick="closeModal()">ยกเลิก</button>
+                <button class="btn btn-save" id="saveEditBtn">💾 บันทึกการแก้ไข</button>
+            </div>
+        </div>
+    </div>
+
+<script type="module">
+    // นำเข้า Firebase v12.12.1 (เพิ่ม doc, deleteDoc, updateDoc)
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
+    import { getFirestore, collection, getDocs, doc, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyDMMwciq6QoLSaWK6xfdr0U3ynyahtoaSk",
+        authDomain: "studio-a33fe.firebaseapp.com",
+        databaseURL: "https://studio-a33fe-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "studio-a33fe",
+        storageBucket: "studio-a33fe.firebasestorage.app",
+        messagingSenderId: "753539109404",
+        appId: "1:753539109404:web:3d916565373b192fe645d9"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    let reportList = []; // เก็บข้อมูลไว้ในอาร์เรย์เพื่อใช้ตอนเปิด Modal แก้ไข
+
+    // ฟังก์ชันจัดรูปแบบสีป้าย Rating
+    const getBadge = (rating) => {
+        let color = "#ef4444"; 
+        if (rating === "ดีเยี่ยม") color = "#10b981";
+        else if (rating === "ดีมาก") color = "#3b82f6";
+        else if (rating === "ดี") color = "#f59e0b";
+        return `<span class="badge" style="background-color: ${color};">${rating}</span>`;
+    };
+
+    // ฟังก์ชันโหลดข้อมูลลงตาราง
+    async function loadData() {
+        const tableBody = document.getElementById('tableBody');
+        tableBody.innerHTML = '<tr><td colspan="7" style="text-align: center;">⏳ กำลังโหลดข้อมูล...</td></tr>';
+        
+        try {
+            const querySnapshot = await getDocs(collection(db, "carbon_reports"));
+            reportList = [];
+            tableBody.innerHTML = ''; // ล้างข้อความโหลด
+
+            if (querySnapshot.empty) {
+                tableBody.innerHTML = '<tr><td colspan="7" style="text-align: center;">ไม่พบข้อมูลในระบบ</td></tr>';
+                return;
+            }
+
+            querySnapshot.forEach((documentObj) => {
+                const data = documentObj.data();
+                const docId = documentObj.id; // ไอดีเอกสารสำหรับใช้อ้างอิงลบ/แก้ไข
+                
+                // เก็บข้อมูลลง Array
+                reportList.push({ id: docId, ...data });
+
+                // แปลงวันที่ (Firestore เก็บเป็น Timestamp)
+                let dateStr = "N/A";
+                if (data.timestamp) {
+                    const dateObj = data.timestamp.toDate ? data.timestamp.toDate() : new Date(data.timestamp);
+                    dateStr = dateObj.toLocaleDateString('th-TH') + ' ' + dateObj.toLocaleTimeString('th-TH', {hour: '2-digit', minute:'2-digit'});
+                }
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="font-size: 14px; color: #64748b;">${dateStr}</td>
+                    <td style="font-weight: bold;">${data.organization}</td>
+                    <td style="color: #ef4444;">${data.totalFootprint_kgCO2}</td>
+                    <td style="color: #10b981;">${data.totalCredit_kgCO2}</td>
+                    <td>${data.compensationPercent}%</td>
+                    <td>${getBadge(data.rating)}</td>
+                    <td>
+                        <button class="btn btn-edit" onclick="openEditModal('${docId}')">✏️</button>
+                        <button class="btn btn-delete" onclick="deleteRecord('${docId}', '${data.organization}')">🗑️</button>
+                    </td>
+                `;
+                tableBody.appendChild(tr);
+            });
+        } catch (error) {
+            console.error("Error loading data: ", error);
+            tableBody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: red;">❌ เกิดข้อผิดพลาดในการโหลดข้อมูล</td></tr>';
+        }
+    }
+
+    // ฟังก์ชันลบข้อมูล (ต้องประกาศลง window เพื่อให้ onclick ใน HTML เรียกใช้ได้)
+    window.deleteRecord = async (docId, orgName) => {
+        if (confirm(`คุณแน่ใจหรือไม่ที่จะลบข้อมูลของ "${orgName}" ?\n(การกระทำนี้ไม่สามารถย้อนกลับได้)`)) {
+            try {
+                await deleteDoc(doc(db, "carbon_reports", docId));
+                alert("ลบข้อมูลเรียบร้อยแล้ว");
+                loadData(); // รีเฟรชตาราง
+            } catch (error) {
+                console.error("Error deleting document: ", error);
+                alert("เกิดข้อผิดพลาดในการลบข้อมูล");
+            }
+        }
+    };
+
+    // เปิดหน้าต่างแก้ไขข้อมูล
+    window.openEditModal = (docId) => {
+        const data = reportList.find(item => item.id === docId);
+        if (data) {
+            document.getElementById('editDocId').value = docId;
+            document.getElementById('editOrgName').value = data.organization;
+            document.getElementById('editFootprint').value = data.totalFootprint_kgCO2;
+            document.getElementById('editCredit').value = data.totalCredit_kgCO2;
+            document.getElementById('editModal').style.display = 'flex';
+        }
+    };
+
+    // ปิดหน้าต่างแก้ไข
+    window.closeModal = () => {
+        document.getElementById('editModal').style.display = 'none';
+    };
+
+    // บันทึกข้อมูลที่แก้ไข
+    document.getElementById('saveEditBtn').addEventListener('click', async () => {
+        const docId = document.getElementById('editDocId').value;
+        const orgName = document.getElementById('editOrgName').value;
+        const newFootprint = parseFloat(document.getElementById('editFootprint').value) || 0;
+        const newCredit = parseFloat(document.getElementById('editCredit').value) || 0;
+
+        // คำนวณเปอร์เซ็นต์และเกณฑ์ใหม่
+        let compensationPercent = 0;
+        if (newFootprint > 0) compensationPercent = (newCredit / newFootprint) * 100;
+        else if (newCredit > 0) compensationPercent = 100;
+
+        let rating = "ต้องปรับปรุง";
+        if (compensationPercent >= 50) rating = "ดีเยี่ยม";
+        else if (compensationPercent >= 30) rating = "ดีมาก";
+        else if (compensationPercent >= 10) rating = "ดี";
+
+        const updateData = {
+            organization: orgName,
+            totalFootprint_kgCO2: Number(newFootprint.toFixed(2)),
+            totalCredit_kgCO2: Number(newCredit.toFixed(2)),
+            compensationPercent: Number(compensationPercent.toFixed(2)),
+            rating: rating
+        };
+
+        const btn = document.getElementById('saveEditBtn');
+        btn.innerText = "กำลังบันทึก...";
+        btn.disabled = true;
+
+        try {
+            await updateDoc(doc(db, "carbon_reports", docId), updateData);
+            alert("อัปเดตข้อมูลสำเร็จ");
+            closeModal();
+            loadData(); // รีเฟรชตาราง
+        } catch (error) {
+            console.error("Error updating document: ", error);
+            alert("เกิดข้อผิดพลาดในการอัปเดตข้อมูล");
+        } finally {
+            btn.innerText = "💾 บันทึกการแก้ไข";
+            btn.disabled = false;
+        }
+    });
+
+    // โหลดข้อมูลครั้งแรกเมื่อเปิดหน้า
+    loadData();
+
+</script>
+</body>
+</html>
