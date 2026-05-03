@@ -12,11 +12,44 @@
             --bg-base: #030a10; --bg-panel: rgba(3, 20, 25, 0.9);
             --glow-green: #00ffcc; --glow-red: #ff3366; --text-main: #e0f8f5;
         }
-        body { font-family: 'Chakra Petch', monospace; background-color: var(--bg-base); color: var(--text-main); margin: 0; padding: 20px; }
+        body { font-family: 'Chakra Petch', monospace; background-color: var(--bg-base); color: var(--text-main); margin: 0; padding: 0; height: 100vh; }
+        
+        /* === ระบบล็อกรหัสผ่าน (Auth Overlay) === */
+        #authOverlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: var(--bg-base); z-index: 9999;
+            display: flex; justify-content: center; align-items: center;
+            flex-direction: column;
+            background-image: radial-gradient(circle at 50% 50%, #0a192f 0%, #030a10 100%);
+        }
+        .auth-box {
+            background: var(--bg-panel); border: 1px solid var(--glow-red);
+            padding: 40px 30px; text-align: center; box-shadow: 0 0 30px rgba(255,51,102,0.2);
+            width: 90%; max-width: 350px; border-radius: 4px;
+        }
+        .auth-box h3 { color: var(--glow-red); margin-top: 0; text-shadow: 0 0 10px var(--glow-red); letter-spacing: 2px; }
+        .auth-box input {
+            width: 100%; padding: 15px; margin: 15px 0 5px 0; background: rgba(0,0,0,0.8);
+            color: var(--glow-red); border: 1px solid var(--glow-red); font-family: monospace;
+            font-size: 24px; text-align: center; letter-spacing: 8px; box-sizing: border-box;
+            transition: 0.3s;
+        }
+        .auth-box input:focus { outline: none; box-shadow: 0 0 15px rgba(255,51,102,0.6); }
+        .auth-box button {
+            width: 100%; padding: 12px; background: rgba(255,51,102,0.1); color: var(--glow-red);
+            border: 1px solid var(--glow-red); cursor: pointer; font-family: monospace; font-weight: bold;
+            font-size: 16px; letter-spacing: 1px; transition: 0.3s;
+        }
+        .auth-box button:hover { background: var(--glow-red); color: #000; box-shadow: 0 0 15px var(--glow-red); }
+        .error-text { color: var(--glow-red); font-size: 12px; height: 15px; margin-bottom: 15px; letter-spacing: 1px; }
+
+        /* === เนื้อหาหลักของ Admin (ถูกซ่อนไว้ตอนแรก) === */
+        #mainAdminContent { display: none; padding: 20px; }
         
         .header { display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.8); border: 1px solid var(--glow-green); padding: 15px 20px; margin-bottom: 20px; box-shadow: 0 0 10px rgba(0,255,204,0.2); }
-        .header h2 { margin: 0; color: var(--glow-red); text-shadow: 0 0 5px var(--glow-red); }
-        .header a { color: var(--glow-green); text-decoration: none; font-family: monospace; }
+        .header h2 { margin: 0; color: var(--glow-green); text-shadow: 0 0 5px var(--glow-green); }
+        .header a { color: var(--glow-red); text-decoration: none; font-family: monospace; border: 1px solid var(--glow-red); padding: 5px 10px; transition: 0.3s;}
+        .header a:hover { background: var(--glow-red); color: #000; box-shadow: 0 0 10px var(--glow-red); }
         
         .table-container { background: var(--bg-panel); border: 1px solid #1a365d; padding: 10px; overflow-x: auto; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
         table { width: 100%; border-collapse: collapse; min-width: 800px; font-family: monospace; font-size: 14px;}
@@ -40,18 +73,33 @@
 </head>
 <body>
 
-    <div class="header">
-        <h2>⚠️ SYS_ADMIN: ROOT ACCESS</h2>
-        <a href="index.html">[ TERMINATE SESSION ]</a>
+    <!-- หน้าจอล็อกรหัสผ่าน -->
+    <div id="authOverlay">
+        <div class="auth-box">
+            <h3>RESTRICTED AREA</h3>
+            <div style="font-size: 12px; color: #64748b;">AUTHORIZATION REQUIRED</div>
+            <input type="password" id="authCode" placeholder="******" maxlength="6">
+            <div class="error-text" id="authError"></div>
+            <button id="authBtn">VERIFY IDENTITY</button>
+        </div>
     </div>
 
-    <div class="table-container">
-        <table>
-            <thead><tr><th>TIMESTAMP</th><th>ORG_IDENTIFIER</th><th>EMISSION</th><th>CREDIT</th><th>NEUTRAL (%)</th><th>STATUS</th><th>OVERRIDE</th></tr></thead>
-            <tbody id="tableBody"><tr><td colspan="7" style="text-align: center; color: var(--glow-green);">FETCHING DATABASE...</td></tr></tbody>
-        </table>
+    <!-- เนื้อหาแอดมิน (แสดงเมื่อรหัสถูก) -->
+    <div id="mainAdminContent">
+        <div class="header">
+            <h2>⚙️ SYS_ADMIN: ROOT ACCESS</h2>
+            <a href="index.html" onclick="location.reload()">[ LOGOUT ]</a>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead><tr><th>TIMESTAMP</th><th>ORG_IDENTIFIER</th><th>EMISSION</th><th>CREDIT</th><th>NEUTRAL (%)</th><th>STATUS</th><th>OVERRIDE</th></tr></thead>
+                <tbody id="tableBody"><tr><td colspan="7" style="text-align: center; color: var(--glow-green);">FETCHING DATABASE...</td></tr></tbody>
+            </table>
+        </div>
     </div>
 
+    <!-- Modal แก้ไขข้อมูล -->
     <div id="editModal" class="modal">
         <div class="modal-content">
             <h3>>> MODIFY RECORD</h3>
@@ -74,6 +122,30 @@
     const app = initializeApp(firebaseConfig); const db = getFirestore(app);
     let reportList = [];
 
+    // === ระบบตรวจสอบรหัสผ่าน ===
+    document.getElementById('authBtn').addEventListener('click', () => {
+        const code = document.getElementById('authCode').value;
+        const errorText = document.getElementById('authError');
+        
+        if(code === "878556") {
+            // ถ้ารหัสถูก ซ่อนหน้าล็อก โชว์เนื้อหา แล้วค่อยโหลดข้อมูล
+            document.getElementById('authOverlay').style.display = 'none';
+            document.getElementById('mainAdminContent').style.display = 'block';
+            loadData();
+        } else {
+            // ถ้ารหัสผิด
+            errorText.innerText = "ACCESS DENIED. INVALID AUTH CODE.";
+            document.getElementById('authCode').value = '';
+            document.getElementById('authCode').focus();
+        }
+    });
+
+    // กด Enter เพื่อ Submit รหัสได้เลย
+    document.getElementById('authCode').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') { document.getElementById('authBtn').click(); }
+    });
+
+    // === ฟังก์ชันจัดการข้อมูล (เหมือนเดิม) ===
     const getBadge = (rating) => {
         let bg = "#ff3366"; if(rating==="ดีเยี่ยม") bg="#00ffcc"; else if(rating==="ดีมาก") bg="#33ccff"; else if(rating==="ดี") bg="#ffcc00";
         return `<span class="badge" style="background-color: ${bg}; box-shadow: 0 0 5px ${bg};">${rating}</span>`;
@@ -85,7 +157,7 @@
             const querySnapshot = await getDocs(collection(db, "carbon_reports")); reportList = []; tbody.innerHTML = '';
             querySnapshot.forEach((doc) => {
                 const data = doc.data(); reportList.push({ id: doc.id, ...data });
-                let dateStr = "N/A"; if (data.timestamp) { const d = data.timestamp.toDate ? data.timestamp.toDate() : new Date(data.timestamp); dateStr = d.toLocaleDateString() + ' ' + d.toLocaleTimeString(); }
+                let dateStr = "N/A"; if (data.timestamp) { const d = data.timestamp.toDate ? data.timestamp.toDate() : new Date(data.timestamp); dateStr = d.toLocaleDateString('th-TH') + ' ' + d.toLocaleTimeString('th-TH'); }
                 tbody.innerHTML += `<tr><td style="color:#64748b;">${dateStr}</td><td>${data.organization}</td><td style="color:#ff3366;">${data.totalFootprint_kgCO2}</td><td style="color:#00ffcc;">${data.totalCredit_kgCO2}</td><td>${data.compensationPercent}%</td><td>${getBadge(data.rating)}</td><td><button class="btn btn-edit" onclick="openEditModal('${doc.id}')">EDIT</button> <button class="btn btn-delete" onclick="deleteRecord('${doc.id}')">PURGE</button></td></tr>`;
             });
         } catch (e) { tbody.innerHTML = '<tr><td colspan="7" style="color:red; text-align:center;">SYS_ERROR: DB READ FAILED.</td></tr>'; }
@@ -112,8 +184,6 @@
         
         try { await updateDoc(doc(db, "carbon_reports", docId), { organization: orgName, totalFootprint_kgCO2: Number(newFootprint.toFixed(2)), totalCredit_kgCO2: Number(newCredit.toFixed(2)), compensationPercent: Number(compensationPercent.toFixed(2)), rating: rating }); closeModal(); loadData(); } catch (e) { alert("UPDATE FAILED."); }
     });
-
-    loadData();
 </script>
 </body>
 </html>
