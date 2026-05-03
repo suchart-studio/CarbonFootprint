@@ -20,82 +20,101 @@
             margin: 0; padding: 0; 
             height: 100%; 
             font-family: 'Chakra Petch', sans-serif; 
-            overflow: hidden; /* ป้องกันการเลื่อนหน้าจอ */
+            overflow: hidden; 
         }
 
-        /* ให้แผนที่เต็มจอ 100% */
         #cityMap { 
             height: 100vh; 
             width: 100vw; 
             z-index: 1;
         }
 
-        /* คอนเทนเนอร์สำหรับป้ายที่ลอยอยู่เหนือแผนที่ */
+        /* ปุ่มกลับ ลอยมุมซ้ายบน */
+        .back-btn-float {
+            position: absolute;
+            top: 20px; left: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(8px);
+            padding: 10px 15px;
+            border-radius: 12px;
+            text-decoration: none;
+            color: #4b5563;
+            font-size: 16px;
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            z-index: 1000;
+            pointer-events: auto;
+            border: 1px solid #e5e7eb;
+            transition: 0.3s;
+        }
+        .back-btn-float:hover { background: white; color: var(--dark-green); }
+
+        /* คอนเทนเนอร์ลอยกลางจอ */
         .floating-panel {
             position: absolute;
             top: 20px;
             left: 50%;
             transform: translateX(-50%);
-            width: 95%;
-            max-width: 500px;
-            z-index: 1000; /* ให้อยู่เหนือแผนที่ */
-            pointer-events: none; /* ให้คลิกทะลุช่องว่างไปโดนแผนที่ได้ */
+            width: 90%;
+            max-width: 400px;
+            z-index: 1000;
+            pointer-events: none; 
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
 
-        /* การ์ดหัวข้อ */
-        .title-card {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(8px);
-            padding: 12px 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            text-align: center;
-            margin-bottom: 10px;
-            pointer-events: auto; /* ให้คลิกที่การ์ดได้ */
-            border-bottom: 4px solid var(--primary-green);
-            position: relative;
-        }
-        
-        .title-card h2 { 
-            margin: 0; color: var(--dark-green); font-size: 18px; 
-        }
-
-        /* ปุ่มกลับหน้าหลัก */
-        .back-btn {
-            position: absolute;
-            left: 15px; top: 50%;
-            transform: translateY(-50%);
-            text-decoration: none;
-            color: #6b7280;
-            font-size: 20px;
-            transition: 0.3s;
-        }
-        .back-btn:hover { color: var(--dark-green); }
-
-        /* กริดป้ายสรุปข้อมูล */
+        /* กล่องข้อมูลสรุป */
         .summary-grid { 
             display: grid; 
             grid-template-columns: 1fr 1fr; 
             gap: 10px; 
             pointer-events: auto;
         }
-
         .summary-card { 
             padding: 15px 10px; 
             border-radius: 12px; 
             text-align: center; 
             color: white; 
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            backdrop-filter: blur(8px); /* เอฟเฟกต์กระจกขุ่น */
+            backdrop-filter: blur(8px); 
         }
         .card-red { background: rgba(239, 68, 68, 0.9); border: 1px solid #fca5a5; }
         .card-green { background: rgba(16, 185, 129, 0.9); border: 1px solid #6ee7b7; }
         
-        .summary-card h4 { margin: 0; font-size: 13px; font-weight: normal; opacity: 0.9; }
-        .summary-card h1 { margin: 5px 0 0 0; font-size: 26px; font-weight: bold; }
-        .summary-card p { margin: 0; font-size: 12px; opacity: 0.8; }
+        .summary-card h4 { margin: 0; font-size: 12px; font-weight: normal; opacity: 0.9; }
+        .summary-card h1 { margin: 5px 0 0 0; font-size: 24px; font-weight: bold; }
+        .summary-card p { margin: 0; font-size: 11px; opacity: 0.8; }
 
-        /* ป้ายแจ้งเตือนกำลังโหลด */
+        /* แถบสีแสดงสถานะ (Legend Bar) */
+        .status-bar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(8px);
+            padding: 10px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            pointer-events: auto;
+            border: 1px solid #e5e7eb;
+        }
+        .status-item {
+            display: flex;
+            align-items: center;
+            font-size: 11px;
+            font-weight: bold;
+            color: #4b5563;
+            gap: 5px;
+        }
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: 0 0 4px rgba(0,0,0,0.2);
+        }
+
         #loading {
             position: absolute;
             top: 50%; left: 50%;
@@ -113,19 +132,16 @@
 </head>
 <body>
 
-    <!-- ข้อความโหลด ลอยอยู่ตรงกลางจอ -->
+    <!-- ข้อความโหลด -->
     <div id="loading">⏳ กำลังรวบรวมข้อมูลพื้นที่...</div>
 
-    <!-- แผงข้อมูลลอยตัว (Floating Panel) -->
+    <!-- ปุ่มกลับ -->
+    <a href="index.html" class="back-btn-float">⬅️ กลับ</a>
+
+    <!-- แผงข้อมูลลอยตัว (จัดกึ่งกลางด้านบน) -->
     <div class="floating-panel">
         
-        <!-- หัวข้อ -->
-        <div class="title-card">
-            <a href="index.html" class="back-btn" title="กลับไปหน้าฟอร์ม">⬅️</a>
-            <h2>KHONKAEN LOW CARBON DASHBOARD</h2>
-        </div>
-
-        <!-- ป้ายสรุปข้อมูล (ซ่อนไว้ก่อนจนกว่าจะโหลดเสร็จ) -->
+        <!-- ป้ายสรุปข้อมูล (ถูกซ่อนตอนแรก) -->
         <div class="summary-grid" id="summaryGrid" style="display: none;">
             <div class="summary-card card-red">
                 <h4>🔴 ปล่อยคาร์บอนรวม</h4>
@@ -139,9 +155,17 @@
             </div>
         </div>
 
+        <!-- แถบสีบอกสถานะหมุดบนแผนที่ (ถูกซ่อนตอนแรก) -->
+        <div class="status-bar" id="statusBar" style="display: none;">
+            <div class="status-item"><span class="dot" style="background: #10b981;"></span>ดีเยี่ยม</div>
+            <div class="status-item"><span class="dot" style="background: #0ea5e9;"></span>ดีมาก</div>
+            <div class="status-item"><span class="dot" style="background: #f59e0b;"></span>ดี</div>
+            <div class="status-item"><span class="dot" style="background: #ef4444;"></span>ปรับปรุง</div>
+        </div>
+
     </div>
 
-    <!-- แผนที่แบบเต็มหน้าจอ -->
+    <!-- แผนที่เต็มหน้าจอ -->
     <div id="cityMap"></div>
 
 <script type="module">
@@ -151,10 +175,8 @@
     const firebaseConfig = { apiKey: "AIzaSyDMMwciq6QoLSaWK6xfdr0U3ynyahtoaSk", authDomain: "studio-a33fe.firebaseapp.com", databaseURL: "https://studio-a33fe-default-rtdb.asia-southeast1.firebasedatabase.app", projectId: "studio-a33fe", storageBucket: "studio-a33fe.firebasestorage.app", messagingSenderId: "753539109404", appId: "1:753539109404:web:3d916565373b192fe645d9" };
     const app = initializeApp(firebaseConfig); const db = getFirestore(app);
 
-    // ปรับ Zoom Control ให้ไปอยู่มุมขวาล่างเพื่อไม่ให้บังป้ายข้อมูล
     const cityMap = L.map('cityMap', { zoomControl: false }).setView([16.4322, 102.8236], 13);
     L.control.zoom({ position: 'bottomright' }).addTo(cityMap);
-
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' }).addTo(cityMap);
 
     const getMarkerIcon = (rating) => {
@@ -178,9 +200,10 @@
             document.getElementById('totalCityFootprint').innerText = sumFootprint.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
             document.getElementById('totalCityCredit').innerText = sumCredit.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
             
-            // ซ่อนป้ายโหลด และโชว์การ์ดข้อมูล
+            // ซ่อนข้อความโหลด และแสดงกล่องข้อมูล + แถบสถานะ
             document.getElementById('loading').style.display = 'none';
             document.getElementById('summaryGrid').style.display = 'grid';
+            document.getElementById('statusBar').style.display = 'flex';
         } catch (error) { document.getElementById('loading').innerText = "❌ เกิดข้อผิดพลาดในการดึงข้อมูล"; }
     }
     loadDashboardData();
