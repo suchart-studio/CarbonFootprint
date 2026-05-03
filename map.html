@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Khon Kaen Carbon Dashboard</title>
+    
+    <!-- นำเข้า Font Chakra Petch -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- นำเข้า Leaflet.js สำหรับแสดงแผนที่ OpenStreetMap -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <style>
+        body { 
+            font-family: 'Chakra Petch', sans-serif; 
+            background-color: #f0f4f8; 
+            margin: 0; 
+            padding: 10px;
+            color: #2c3e50;
+        }
+        .nav-bar {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .nav-bar a {
+            text-decoration: none;
+            color: #2563eb;
+            font-weight: bold;
+            font-size: 16px;
+        }
+        .dashboard-container {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        h2 { text-align: center; color: #1a252f; margin-top: 0; font-size: 24px;}
+        
+        /* สไตล์ป้ายสรุปข้อมูล (Summary Badges) */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .summary-card {
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            color: white;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .card-red { background: linear-gradient(135deg, #ef4444, #dc2626); }
+        .card-green { background: linear-gradient(135deg, #10b981, #059669); }
+        
+        .summary-card h4 { margin: 0; font-size: 16px; font-weight: 600; opacity: 0.9; }
+        .summary-card h1 { margin: 10px 0 0 0; font-size: 28px; }
+        .summary-card p { margin: 0; font-size: 14px; opacity: 0.8; }
+
+        @media (max-width: 480px) {
+            .summary-grid { grid-template-columns: 1fr; /* บนมือถือให้เรียงบนล่าง */ }
+        }
+
+        /* สไตล์แผนที่ */
+        #cityMap {
+            height: 60vh; /* ให้ความสูงแผนที่สัมพันธ์กับหน้าจอ */
+            min-height: 400px;
+            width: 100%;
+            border-radius: 12px;
+            border: 2px solid #e2e8f0;
+            z-index: 1;
+        }
+        .loading-text { text-align: center; color: #64748b; font-size: 18px; margin: 20px 0; }
+    </style>
+</head>
+<body>
+
+    <div class="nav-bar">
+        <a href="index.html">⬅️ กลับไปหน้าประเมิน</a>
+        <span style="font-weight: bold; color: #1a252f;">🌱 Khon Kaen City</span>
+    </div>
+
+    <div class="dashboard-container">
+        <h2>📊 แดชบอร์ดสิ่งแวดล้อม ขอนแก่น</h2>
+        
+        <div id="loading" class="loading-text">⏳ กำลังดึงข้อมูลของเมือง...</div>
+
+        <!-- ป้ายสรุปข้อมูล (ซ่อนไว้ก่อนจนกว่าจะโหลดเสร็จ) -->
+        <div class="summary-grid" id="summaryGrid" style="display: none;">
+            <div class="summary-card card-red">
+                <h4>🔴 คาร์บอนฟุตพริ้นท์รวม</h4>
+                <h1 id="totalCityFootprint">0.00</h1>
+                <p>kgCO2e</p>
+            </div>
+            <div class="summary-card card-green">
+                <h4>🟢 คาร์บอนเครดิตรวม</h4>
+                <h1 id="totalCityCredit">0.00</h1>
+                <p>kgCO2e</p>
+            </div>
+        </div>
+
+        <!-- พื้นที่แสดงแผนที่ -->
+        <div id="cityMap"></div>
+    </div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
+    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+
+    // Firebase Config ของคุณ
+    const firebaseConfig = {
+        apiKey: "AIzaSyDMMwciq6QoLSaWK6xfdr0U3ynyahtoaSk",
+        authDomain: "studio-a33fe.firebaseapp.com",
+        databaseURL: "https://studio-a33fe-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "studio-a33fe",
+        storageBucket: "studio-a33fe.firebasestorage.app",
+        messagingSenderId: "753539109404",
+        appId: "1:753539109404:web:3d916565373b192fe645d9"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // สร้างแผนที่
+    const khonkaenCenter = [16.4322, 102.8236]; // ศาลหลักเมืองขอนแก่น
+    const cityMap = L.map('cityMap').setView(khonkaenCenter, 12);
+    
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap'
+    }).addTo(cityMap);
+
+    // ไอคอนหมุดตามสี Rating
+    const getMarkerIcon = (rating) => {
+        let color = 'red'; 
+        if (rating === 'ดีเยี่ยม') color = 'green';
+        else if (rating === 'ดีมาก') color = 'blue';
+        else if (rating === 'ดี') color = 'gold';
+
+        return new L.Icon({
+            iconUrl: `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-${color}.png`,
+            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+            iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41]
+        });
+    };
+
+    // ฟังก์ชันดึงข้อมูลจาก Database และคำนวณยอดรวม
+    async function loadDashboardData() {
+        let sumFootprint = 0;
+        let sumCredit = 0;
+
+        try {
+            const querySnapshot = await getDocs(collection(db, "carbon_reports"));
+            
+            querySnapshot.forEach((doc) => {
+                const data = doc.data();
+                
+                // บวกยอดรวม
+                sumFootprint += data.totalFootprint_kgCO2 || 0;
+                sumCredit += data.totalCredit_kgCO2 || 0;
+
+                // ปักหมุดบนแผนที่
+                if (data.latitude && data.longitude) {
+                    let badgeColor = "#ef4444"; 
+                    if (data.rating === "ดีเยี่ยม") badgeColor = "#10b981";
+                    else if (data.rating === "ดีมาก") badgeColor = "#3b82f6";
+                    else if (data.rating === "ดี") badgeColor = "#f59e0b";
+
+                    const marker = L.marker([data.latitude, data.longitude], { icon: getMarkerIcon(data.rating) }).addTo(cityMap);
+                    
+                    marker.bindPopup(`
+                        <div style="font-family: 'Chakra Petch', sans-serif; font-size:14px; text-align:center;">
+                            <strong style="font-size:16px;">${data.organization}</strong><br><br>
+                            🔴 ปล่อย: ${data.totalFootprint_kgCO2} kg<br>
+                            🟢 ลดได้: ${data.totalCredit_kgCO2} kg<br>
+                            <div style="margin-top:8px; padding:4px; background:${badgeColor}; color:white; border-radius:4px;">
+                                ระดับ: <b>${data.rating}</b>
+                            </div>
+                        </div>
+                    `);
+                }
+            });
+
+            // อัปเดตตัวเลขบนหน้าจอ
+            // .toLocaleString() ช่วยใส่เครื่องหมายลูกน้ำให้ตัวเลขดูง่ายขึ้น เช่น 1,234.56
+            document.getElementById('totalCityFootprint').innerText = sumFootprint.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('totalCityCredit').innerText = sumCredit.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+
+            // ซ่อนข้อความโหลด และแสดงป้ายข้อมูล
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('summaryGrid').style.display = 'grid';
+
+        } catch (error) {
+            console.error("Error loading dashboard data: ", error);
+            document.getElementById('loading').innerText = "❌ เกิดข้อผิดพลาดในการดึงข้อมูล";
+        }
+    }
+
+    // เรียกใช้ฟังก์ชันทันทีที่เปิดหน้าเว็บ
+    loadDashboardData();
+
+</script>
+</body>
+</html>
