@@ -4,50 +4,120 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Khon Kaen Carbon Tracker</title>
+    
+    <!-- นำเข้า Font Chakra Petch -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- นำเข้า Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- 📍 นำเข้า Leaflet.js สำหรับแสดงแผนที่ OpenStreetMap -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
     <style>
-        body { font-family: 'Sarabun', sans-serif; background-color: #f4f7f6; padding: 20px; }
-        .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
-        input, select, button { width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-        button { background-color: #28a745; color: white; border: none; cursor: pointer; font-weight: bold; margin-top: 15px; }
-        button:hover { background-color: #218838; }
-        .result-box { margin-top: 20px; padding: 15px; background: #e9ecef; border-radius: 4px; display: none; }
+        body { 
+            font-family: 'Chakra Petch', sans-serif; 
+            background-color: #f4f7f6; 
+            padding: 20px; 
+            color: #333;
+        }
+        .container { 
+            max-width: 650px; 
+            margin: auto; 
+            background: white; 
+            padding: 25px; 
+            border-radius: 12px; 
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1); 
+        }
+        h2 { text-align: center; color: #2c3e50; }
+        h3 { color: #34495e; border-bottom: 2px solid #eee; padding-bottom: 5px; margin-top: 25px;}
+        input, select, button { 
+            width: 100%; 
+            padding: 10px; 
+            margin: 8px 0; 
+            border: 1px solid #ccc; 
+            border-radius: 6px; 
+            box-sizing: border-box; 
+            font-family: 'Chakra Petch', sans-serif;
+            font-size: 16px;
+        }
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .btn-primary { 
+            background-color: #007bff; 
+            color: white; border: none; cursor: pointer; font-weight: 600; font-size: 18px; margin-top: 20px; padding: 15px; transition: background 0.3s;
+        }
+        .btn-primary:hover { background-color: #0056b3; }
+        .btn-location {
+            background-color: #6c757d; color: white; border: none; cursor: pointer; padding: 10px; font-size: 14px; margin-top: 5px;
+        }
+        .btn-location:hover { background-color: #5a6268; }
+        .result-box { 
+            margin-top: 25px; padding: 20px; background: #f8f9fa; border-radius: 8px; border-left: 5px solid #28a745; display: none; 
+        }
+        .chart-container { position: relative; height: 300px; width: 100%; margin-top: 20px; }
+        
+        /* สไตล์สำหรับแผนที่ */
+        #map { height: 350px; width: 100%; margin-top: 20px; border-radius: 8px; z-index: 1; border: 1px solid #ddd; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>ระบบคำนวณ Carbon Footprint & Credit จ.ขอนแก่น</h2>
+    <h2>🌍 ระบบคำนวณ Carbon Footprint & Credit <br>จังหวัดขอนแก่น</h2>
     <form id="carbonForm">
-        <label>ชื่อหน่วยงาน/องค์กร/ครัวเรือน:</label>
+        <label>🏢 ชื่อหน่วยงาน/องค์กร/ครัวเรือน:</label>
         <input type="text" id="orgName" required placeholder="เช่น บริษัท เอบีซี จำกัด">
 
-        <h3>🔴 ส่วนที่ 1: การปล่อยก๊าซเรือนกระจก</h3>
-        <label>การใช้พลังงานไฟฟ้า (หน่วย/เดือน):</label>
+        <h3>🔴 ส่วนที่ 1: การปล่อยก๊าซเรือนกระจก (Footprint)</h3>
+        <label>⚡ การใช้พลังงานไฟฟ้า (หน่วย/เดือน):</label>
         <input type="number" id="electricityUsage" value="0" min="0" step="any" required>
-        
-        <label>การใช้น้ำมันเชื้อเพลิง (เช่น ดีเซล) (ลิตร/เดือน):</label>
+        <label>⛽ การใช้น้ำมันเชื้อเพลิง (ดีเซล) (ลิตร/เดือน):</label>
         <input type="number" id="fuelUsage" value="0" min="0" step="any" required>
 
-        <h3>🟢 ส่วนที่ 2: การลดก๊าซเรือนกระจก</h3>
-        <label>ขยะที่คัดแยกเพื่อรีไซเคิล (กิโลกรัม/เดือน):</label>
-        <input type="number" id="recycledWaste" value="0" min="0" step="any" required>
-        
-        <label>ไฟฟ้าที่ลดการใช้ได้ / พลังงานทดแทน (หน่วย/เดือน):</label>
+        <h3>🟢 ส่วนที่ 2: การลดก๊าซเรือนกระจก (Credit)</h3>
+        <label>♻️ ขยะที่คัดแยกเพื่อรีไซเคิล (กิโลกรัม/เดือน):</label>
+        <div class="grid-2">
+            <div><label style="font-size: 14px; color: #555;">พลาสติก:</label><input type="number" id="wastePlastic" value="0" min="0" step="any" required></div>
+            <div><label style="font-size: 14px; color: #555;">กระดาษ:</label><input type="number" id="wastePaper" value="0" min="0" step="any" required></div>
+            <div><label style="font-size: 14px; color: #555;">แก้ว:</label><input type="number" id="wasteGlass" value="0" min="0" step="any" required></div>
+            <div><label style="font-size: 14px; color: #555;">โลหะ/อลูมิเนียม:</label><input type="number" id="wasteMetal" value="0" min="0" step="any" required></div>
+        </div>
+        <label style="margin-top:15px; display:block;">☀️ ไฟฟ้าที่ลดการใช้ได้ / ผลิตจากโซล่าเซลล์ (หน่วย/เดือน):</label>
         <input type="number" id="savedElectricity" value="0" min="0" step="any" required>
 
-        <button type="submit">คำนวณและส่งรายงาน</button>
+        <!-- 📍 ส่วนที่ 3 เพิ่มการดึงพิกัด -->
+        <h3>📍 ส่วนที่ 3: พิกัดตำแหน่งที่ตั้ง</h3>
+        <button type="button" class="btn-location" id="getLocationBtn">📍 กดเพื่อดึงพิกัด GPS ปัจจุบัน</button>
+        <div class="grid-2">
+            <div><label style="font-size: 14px; color: #555;">ละติจูด (Latitude):</label><input type="text" id="latitude" readonly required placeholder="รอรับพิกัด..."></div>
+            <div><label style="font-size: 14px; color: #555;">ลองจิจูด (Longitude):</label><input type="text" id="longitude" readonly required placeholder="รอรับพิกัด..."></div>
+        </div>
+
+        <button type="submit" class="btn-primary">ประมวลผลและส่งรายงาน</button>
     </form>
 
-    <div class="result-box" id="resultBox"></div>
+    <div class="result-box" id="resultBox">
+        <div id="reportContent"></div>
+        <div class="chart-container"><canvas id="resultChart"></canvas></div>
+        
+        <!-- พื้นที่แสดงแผนที่ -->
+        <h4 style="text-align: center; margin-top: 30px; color: #2c3e50;">🗺️ แผนที่พิกัดสิ่งแวดล้อม จ.ขอนแก่น</h4>
+        <div id="map"></div>
+    </div>
 </div>
 
-<!-- Firebase SDK Version 12.12.1 -->
 <script type="module">
+    // นำเข้า Firebase และฟังก์ชันที่ต้องใช้ (เพิ่ม getDocs สำหรับดึงหมุดแผนที่ทั้งหมด)
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
-    import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-analytics.js";
-    import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 
-    // Your web app's Firebase configuration
     const firebaseConfig = {
         apiKey: "AIzaSyDMMwciq6QoLSaWK6xfdr0U3ynyahtoaSk",
         authDomain: "studio-a33fe.firebaseapp.com",
@@ -59,74 +129,172 @@
         measurementId: "G-537J4GWYLG"
     };
 
-    // Initialize Firebase
     const app = initializeApp(firebaseConfig);
-    const analytics = getAnalytics(app);
-    const db = getFirestore(app); // เรียกใช้ Firestore
+    const db = getFirestore(app);
 
-    // ค่าคงที่สำหรับการคำนวณ (Emission Factors)
-    const EF_ELECTRICITY = 0.4999; 
-    const EF_DIESEL = 2.7446;      
-    const EF_RECYCLE = 1.2;        
+    const EF_ELECTRICITY = 0.4999, EF_DIESEL = 2.7446;      
+    const EF_PLASTIC = 1.5, EF_PAPER = 0.9, EF_GLASS = 0.3, EF_METAL = 2.0;
 
+    let myChart = null; 
+    let myMap = null; // ตัวแปรเก็บ Object แผนที่
+
+    // --- ฟังก์ชันดึงพิกัด ---
+    document.getElementById('getLocationBtn').addEventListener('click', () => {
+        const btn = document.getElementById('getLocationBtn');
+        btn.innerText = "⏳ กำลังค้นหาตำแหน่ง...";
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    document.getElementById('latitude').value = position.coords.latitude;
+                    document.getElementById('longitude').value = position.coords.longitude;
+                    btn.innerText = "✅ ดึงพิกัดสำเร็จ!";
+                    btn.style.backgroundColor = "#28a745";
+                },
+                (error) => {
+                    alert("ไม่สามารถดึงตำแหน่งได้ กรุณากดอนุญาต (Allow) การเข้าถึง Location ของเบราว์เซอร์");
+                    btn.innerText = "📍 กดเพื่อดึงพิกัด GPS ปัจจุบัน";
+                }
+            );
+        } else {
+            alert("เบราว์เซอร์ของคุณไม่รองรับการดึงพิกัด");
+        }
+    });
+
+    // --- ฟังก์ชันสร้างไอคอนหมุดตามสี ---
+    const getMarkerIcon = (rating) => {
+        let color = 'red'; // ค่าเริ่มต้น: ต้องปรับปรุง
+        if (rating === 'ดีเยี่ยม') color = 'green';
+        else if (rating === 'ดีมาก') color = 'blue';
+        else if (rating === 'ดี') color = 'gold';
+
+        return new L.Icon({
+            iconUrl: `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-${color}.png`,
+            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+            iconSize: [25, 41],
+            iconAnchor: [12, 41],
+            popupAnchor: [1, -34],
+            shadowSize: [41, 41]
+        });
+    };
+
+    // --- เมื่อกดส่งฟอร์ม ---
     document.getElementById('carbonForm').addEventListener('submit', async (e) => {
         e.preventDefault();
 
-        // ดึงค่าจากฟอร์ม
-        const orgName = document.getElementById('orgName').value;
-        const electricity = parseFloat(document.getElementById('electricityUsage').value);
-        const fuel = parseFloat(document.getElementById('fuelUsage').value);
-        const recycle = parseFloat(document.getElementById('recycledWaste').value);
-        const savedElec = parseFloat(document.getElementById('savedElectricity').value);
-
-        // คำนวณ Footprint (สิ่งที่ปล่อย)
-        const totalFootprint = (electricity * EF_ELECTRICITY) + (fuel * EF_DIESEL);
-
-        // คำนวณ Credit (สิ่งที่ลดได้)
-        const totalCredit = (recycle * EF_RECYCLE) + (savedElec * EF_ELECTRICITY);
-
-        // คำนวณเปอร์เซ็นต์และเกณฑ์การประเมิน
-        let compensationPercent = 0;
-        if (totalFootprint > 0) {
-            compensationPercent = (totalCredit / totalFootprint) * 100;
-        } else if (totalCredit > 0) {
-            compensationPercent = 100; // กรณีไม่มีการปล่อยเลยแต่มีการลด
+        // ตรวจสอบพิกัด
+        const lat = parseFloat(document.getElementById('latitude').value);
+        const lng = parseFloat(document.getElementById('longitude').value);
+        if (isNaN(lat) || isNaN(lng)) {
+            alert("กรุณากดปุ่ม 'ดึงพิกัด GPS ปัจจุบัน' ก่อนส่งข้อมูลครับ");
+            return;
         }
 
-        let rating = "ต้องปรับปรุง";
-        if (compensationPercent >= 50) rating = "ดีเยี่ยม";
-        else if (compensationPercent >= 30) rating = "ดีมาก";
-        else if (compensationPercent >= 10) rating = "ดี";
+        const orgName = document.getElementById('orgName').value;
+        const electricity = parseFloat(document.getElementById('electricityUsage').value) || 0;
+        const fuel = parseFloat(document.getElementById('fuelUsage').value) || 0;
+        const plastic = parseFloat(document.getElementById('wastePlastic').value) || 0;
+        const paper = parseFloat(document.getElementById('wastePaper').value) || 0;
+        const glass = parseFloat(document.getElementById('wasteGlass').value) || 0;
+        const metal = parseFloat(document.getElementById('wasteMetal').value) || 0;
+        const savedElec = parseFloat(document.getElementById('savedElectricity').value) || 0;
 
-        // เตรียมข้อมูลบันทึกลง Database
+        const totalFootprint = (electricity * EF_ELECTRICITY) + (fuel * EF_DIESEL);
+        const recycleCredit = (plastic * EF_PLASTIC) + (paper * EF_PAPER) + (glass * EF_GLASS) + (metal * EF_METAL);
+        const totalCredit = recycleCredit + (savedElec * EF_ELECTRICITY);
+
+        let compensationPercent = 0;
+        if (totalFootprint > 0) compensationPercent = (totalCredit / totalFootprint) * 100;
+        else if (totalCredit > 0) compensationPercent = 100; 
+
+        let rating = "ต้องปรับปรุง";
+        let ratingColor = "#dc3545"; 
+        if (compensationPercent >= 50) { rating = "ดีเยี่ยม"; ratingColor = "#28a745"; } 
+        else if (compensationPercent >= 30) { rating = "ดีมาก"; ratingColor = "#17a2b8"; } 
+        else if (compensationPercent >= 10) { rating = "ดี"; ratingColor = "#ffc107"; } 
+
         const reportData = {
             organization: orgName,
             totalFootprint_kgCO2: Number(totalFootprint.toFixed(2)),
             totalCredit_kgCO2: Number(totalCredit.toFixed(2)),
             compensationPercent: Number(compensationPercent.toFixed(2)),
             rating: rating,
+            latitude: lat,   // บันทึกพิกัด
+            longitude: lng,  // บันทึกพิกัด
             timestamp: new Date()
         };
 
         try {
-            // บันทึกข้อมูลลงใน Collection ชื่อ "carbon_reports"
+            // บันทึกข้อมูลลง Firestore
             await addDoc(collection(db, "carbon_reports"), reportData);
             
-            // แสดงผลลัพธ์
+            // แสดงผลรายงาน
             const resultBox = document.getElementById('resultBox');
             resultBox.style.display = 'block';
-            resultBox.innerHTML = `
-                <h3 style="margin-top:0;">รายงานสิ่งแวดล้อม: ${orgName}</h3>
-                <p>🔴 ปริมาณคาร์บอนฟุตพริ้นท์: <strong>${reportData.totalFootprint_kgCO2}</strong> kgCO2e</p>
-                <p>🟢 ปริมาณคาร์บอนเครดิต (ลดได้): <strong>${reportData.totalCredit_kgCO2}</strong> kgCO2e</p>
-                <p>📊 สัดส่วนการชดเชย: <strong>${reportData.compensationPercent}%</strong></p>
-                <p>🏆 ระดับการรักษาสิ่งแวดล้อม: <strong style="color: #28a745; font-size: 1.2em;">${rating}</strong></p>
-                <hr>
-                <p style="color: green; font-size: 0.9em; margin-bottom:0;">✅ บันทึกข้อมูลลงฐานข้อมูลเรียบร้อยแล้ว</p>
+            document.getElementById('reportContent').innerHTML = `
+                <h3 style="margin-top:0;">📝 รายงาน: ${orgName}</h3>
+                <p>🔴 ฟุตพริ้นท์ (ปล่อย): <strong>${reportData.totalFootprint_kgCO2}</strong> kgCO2e</p>
+                <p>🟢 เครดิต (ลดได้): <strong>${reportData.totalCredit_kgCO2}</strong> kgCO2e</p>
+                <p style="font-size: 1.1em;">🏆 ระดับ: <strong style="color: ${ratingColor}; background: #fff; padding: 2px 8px; border-radius: 4px; border: 1px solid ${ratingColor};">${rating}</strong></p>
             `;
-            
-            // ล้างค่าในฟอร์มหลังจากส่งข้อมูลสำเร็จ (ถ้าต้องการ)
-            // document.getElementById('carbonForm').reset();
+
+            // จัดการกราฟ
+            const ctx = document.getElementById('resultChart').getContext('2d');
+            if (myChart) myChart.destroy();
+            myChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['ปริมาณก๊าซเรือนกระจก (kgCO2e)'],
+                    datasets: [
+                        { label: '🔴 ปล่อย', data: [reportData.totalFootprint_kgCO2], backgroundColor: 'rgba(220, 53, 69, 0.7)' },
+                        { label: '🟢 ลดได้', data: [reportData.totalCredit_kgCO2], backgroundColor: 'rgba(40, 167, 69, 0.7)' }
+                    ]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' } } }
+            });
+
+            // ==========================================
+            // จัดการแผนที่ (Leaflet OpenStreetMap)
+            // ==========================================
+            if (!myMap) {
+                // สร้างแผนที่ครั้งแรก ตั้งจุดศูนย์กลางไปที่พิกัดที่เพิ่งกรอก
+                myMap = L.map('map').setView([lat, lng], 13);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                }).addTo(myMap);
+            } else {
+                // ถ้ามีแผนที่อยู่แล้ว ให้ขยับจุดศูนย์กลางและล้างหมุดเก่าออกก่อนวาดใหม่
+                myMap.setView([lat, lng], 13);
+                myMap.eachLayer((layer) => {
+                    if (layer instanceof L.Marker) { myMap.removeLayer(layer); }
+                });
+            }
+
+            // คำสั่งบังคับให้แผนที่เรนเดอร์ใหม่ (แก้ปัญหาแผนที่โหลดไม่เต็มกรอบเมื่ออยู่ใน div ที่ถูกซ่อน)
+            setTimeout(() => { myMap.invalidateSize(); }, 300);
+
+            // ดึงข้อมูล *ทั้งหมด* จาก Firestore มาปักหมุด
+            const querySnapshot = await getDocs(collection(db, "carbon_reports"));
+            querySnapshot.forEach((doc) => {
+                const data = doc.data();
+                if (data.latitude && data.longitude) {
+                    // ปักหมุดพร้อมกำหนดสีตาม Rating
+                    const marker = L.marker([data.latitude, data.longitude], { icon: getMarkerIcon(data.rating) }).addTo(myMap);
+                    
+                    // ป๊อปอัปเมื่อกดที่หมุด
+                    marker.bindPopup(`
+                        <div style="font-family: 'Chakra Petch', sans-serif;">
+                            <strong>${data.organization}</strong><br>
+                            ระดับ: <b>${data.rating}</b><br>
+                            ชดเชยได้: ${data.compensationPercent}%
+                        </div>
+                    `);
+                    
+                    // เปิดป๊อปอัปอัตโนมัติสำหรับพิกัดที่เพิ่งกรอกล่าสุด
+                    if (data.organization === orgName) {
+                        marker.openPopup();
+                    }
+                }
+            });
 
         } catch (error) {
             console.error("Error adding document: ", error);
