@@ -86,6 +86,29 @@
         .summary-card h1 { margin: 5px 0 0 0; font-size: 24px; font-weight: bold; }
         .summary-card p { margin: 0; font-size: 11px; opacity: 0.8; }
 
+        /* การ์ดสถานะภาพรวมของเมือง (ใหม่) */
+        .city-status-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(8px);
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            pointer-events: auto;
+            border: 1px solid #e5e7eb;
+        }
+        .city-status-card .title { font-size: 14px; font-weight: bold; color: #4b5563; }
+        .rating-badge-large {
+            display: inline-block;
+            padding: 8px 24px;
+            color: white;
+            font-weight: bold;
+            border-radius: 30px;
+            font-size: 20px;
+            margin-top: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
         /* แถบสีแสดงสถานะ (Legend Bar) */
         .status-bar {
             background: rgba(255, 255, 255, 0.95);
@@ -127,7 +150,6 @@
             font-weight: bold;
             color: #4b5563;
         }
-
     </style>
 </head>
 <body>
@@ -141,7 +163,7 @@
     <!-- แผงข้อมูลลอยตัว (จัดกึ่งกลางด้านบน) -->
     <div class="floating-panel">
         
-        <!-- ป้ายสรุปข้อมูล (ถูกซ่อนตอนแรก) -->
+        <!-- ป้ายสรุปข้อมูลคาร์บอน (ซ้าย-ขวา) -->
         <div class="summary-grid" id="summaryGrid" style="display: none;">
             <div class="summary-card card-red">
                 <h4>🔴 ปล่อยคาร์บอนรวม</h4>
@@ -155,7 +177,14 @@
             </div>
         </div>
 
-        <!-- แถบสีบอกสถานะหมุดบนแผนที่ (ถูกซ่อนตอนแรก) -->
+        <!-- ป้ายสถานะภาพรวมของเมือง (ใหม่) -->
+        <div class="city-status-card" id="cityStatusCard" style="display: none;">
+            <div class="title">📍 ภาพรวมรักษ์โลก จ.ขอนแก่น</div>
+            <div id="cityRatingBadge" class="rating-badge-large">กำลังประมวลผล...</div>
+            <div id="cityPercentText" style="font-size: 13px; color: #6b7280; margin-top: 8px;"></div>
+        </div>
+
+        <!-- แถบสีบอกสถานะหมุดบนแผนที่ -->
         <div class="status-bar" id="statusBar" style="display: none;">
             <div class="status-item"><span class="dot" style="background: #10b981;"></span>ดีเยี่ยม</div>
             <div class="status-item"><span class="dot" style="background: #0ea5e9;"></span>ดีมาก</div>
@@ -200,10 +229,38 @@
             document.getElementById('totalCityFootprint').innerText = sumFootprint.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
             document.getElementById('totalCityCredit').innerText = sumCredit.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
             
-            // ซ่อนข้อความโหลด และแสดงกล่องข้อมูล + แถบสถานะ
+            // --- คำนวณสถานะภาพรวมของเมือง ---
+            let overallPercent = 0;
+            if (sumFootprint > 0) {
+                overallPercent = (sumCredit / sumFootprint) * 100;
+            } else if (sumCredit > 0) {
+                overallPercent = 100; // กรณีไม่มีคนปล่อยคาร์บอนเลยแต่มีการลด
+            }
+
+            let overallRating = "ต้องปรับปรุง";
+            let overallColor = "#ef4444"; // แดง
+            let overallEmoji = "⚠️";
+
+            if (overallPercent >= 50) { 
+                overallRating = "ดีเยี่ยม"; overallColor = "#10b981"; overallEmoji = "🏆"; 
+            } else if (overallPercent >= 30) { 
+                overallRating = "ดีมาก"; overallColor = "#0ea5e9"; overallEmoji = "🌟"; 
+            } else if (overallPercent >= 10) { 
+                overallRating = "ดี"; overallColor = "#f59e0b"; overallEmoji = "👍"; 
+            }
+
+            // นำผลลัพธ์ภาพรวมไปแสดงบนการ์ด
+            const badge = document.getElementById('cityRatingBadge');
+            badge.innerText = `${overallEmoji} ${overallRating}`;
+            badge.style.backgroundColor = overallColor;
+            document.getElementById('cityPercentText').innerText = `(ชดเชยคาร์บอนได้รวมทั้งสิ้น ${overallPercent.toFixed(2)}%)`;
+
+            // ซ่อนข้อความโหลด และแสดง UI ทั้งหมด
             document.getElementById('loading').style.display = 'none';
             document.getElementById('summaryGrid').style.display = 'grid';
+            document.getElementById('cityStatusCard').style.display = 'block';
             document.getElementById('statusBar').style.display = 'flex';
+
         } catch (error) { document.getElementById('loading').innerText = "❌ เกิดข้อผิดพลาดในการดึงข้อมูล"; }
     }
     loadDashboardData();
