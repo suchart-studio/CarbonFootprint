@@ -6,8 +6,13 @@
     <title>แดชบอร์ดสิ่งแวดล้อม จ.ขอนแก่น</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Leaflet CSS & JS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <!-- 📍 นำเข้าปลั๊กอิน Leaflet.heat สำหรับทำ Heat Map -->
+    <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
 
     <style>
         :root {
@@ -86,7 +91,7 @@
         .summary-card h1 { margin: 5px 0 0 0; font-size: 24px; font-weight: bold; }
         .summary-card p { margin: 0; font-size: 11px; opacity: 0.8; }
 
-        /* การ์ดสถานะภาพรวมของเมือง (ใหม่) */
+        /* การ์ดสถานะภาพรวมของเมือง */
         .city-status-card {
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(8px);
@@ -109,6 +114,24 @@
             box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
 
+        /* ปุ่มสลับโหมดแผนที่ (ใหม่) */
+        .toggle-btn {
+            background: #1f2937;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 12px;
+            font-family: 'Chakra Petch', sans-serif;
+            font-weight: bold;
+            font-size: 14px;
+            cursor: pointer;
+            pointer-events: auto;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            transition: 0.3s;
+        }
+        .toggle-btn:hover { background: #374151; }
+        .toggle-btn.mode-heat { background: #ef4444; } /* เปลี่ยนสีเมื่ออยู่ในโหมด Heatmap */
+
         /* แถบสีแสดงสถานะ (Legend Bar) */
         .status-bar {
             background: rgba(255, 255, 255, 0.95);
@@ -121,6 +144,7 @@
             align-items: center;
             pointer-events: auto;
             border: 1px solid #e5e7eb;
+            transition: 0.3s;
         }
         .status-item {
             display: flex;
@@ -160,10 +184,10 @@
     <!-- ปุ่มกลับ -->
     <a href="index.html" class="back-btn-float">⬅️ กลับ</a>
 
-    <!-- แผงข้อมูลลอยตัว (จัดกึ่งกลางด้านบน) -->
+    <!-- แผงข้อมูลลอยตัว -->
     <div class="floating-panel">
         
-        <!-- ป้ายสรุปข้อมูลคาร์บอน (ซ้าย-ขวา) -->
+        <!-- ป้ายสรุปข้อมูลคาร์บอน -->
         <div class="summary-grid" id="summaryGrid" style="display: none;">
             <div class="summary-card card-red">
                 <h4>🔴 ปล่อยคาร์บอนรวม</h4>
@@ -177,12 +201,17 @@
             </div>
         </div>
 
-        <!-- ป้ายสถานะภาพรวมของเมือง (ใหม่) -->
+        <!-- ป้ายสถานะภาพรวมของเมือง -->
         <div class="city-status-card" id="cityStatusCard" style="display: none;">
             <div class="title">📍 ภาพรวมรักษ์โลก จ.ขอนแก่น</div>
             <div id="cityRatingBadge" class="rating-badge-large">กำลังประมวลผล...</div>
             <div id="cityPercentText" style="font-size: 13px; color: #6b7280; margin-top: 8px;"></div>
         </div>
+
+        <!-- 🔘 ปุ่มสลับโหมดแผนที่ความร้อน (Heat Map) -->
+        <button id="toggleMapModeBtn" class="toggle-btn" style="display: none;">
+            🔥 สลับดูความหนาแน่นการปล่อยคาร์บอน (Heat Map)
+        </button>
 
         <!-- แถบสีบอกสถานะหมุดบนแผนที่ -->
         <div class="status-bar" id="statusBar" style="display: none;">
@@ -213,56 +242,110 @@
         return new L.Icon({ iconUrl: `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-${color}.png`, shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png', iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34] });
     };
 
+    // ประกาศตัวแปรเก็บ Layer ของแผนที่
+    let markersLayer = L.layerGroup(); // กลุ่มหมุดพิกัด
+    let heatLayer = null;              // แผนที่ความร้อน
+    let heatDataArray = [];            // เก็บข้อมูลทำ Heatmap
+    let isHeatmapMode = false;         // สถานะโหมดปัจจุบัน
+
     async function loadDashboardData() {
         let sumFootprint = 0; let sumCredit = 0;
+        let maxFootprint = 0; // เก็บค่าสูงสุดเพื่อปรับสเกล Heatmap
+        
         try {
             const querySnapshot = await getDocs(collection(db, "carbon_reports"));
+            
             querySnapshot.forEach((doc) => {
                 const data = doc.data();
-                sumFootprint += data.totalFootprint_kgCO2 || 0; sumCredit += data.totalCredit_kgCO2 || 0;
+                const footprint = data.totalFootprint_kgCO2 || 0;
+                
+                sumFootprint += footprint; 
+                sumCredit += data.totalCredit_kgCO2 || 0;
+                
                 if (data.latitude && data.longitude) {
+                    // --- 1. เตรียมข้อมูลสำหรับหมุด (Markers) ---
                     let badgeColor = "#ef4444"; if (data.rating === "ดีเยี่ยม") badgeColor = "#10b981"; else if (data.rating === "ดีมาก") badgeColor = "#0ea5e9"; else if (data.rating === "ดี") badgeColor = "#f59e0b";
-                    const marker = L.marker([data.latitude, data.longitude], { icon: getMarkerIcon(data.rating) }).addTo(cityMap);
+                    
+                    const marker = L.marker([data.latitude, data.longitude], { icon: getMarkerIcon(data.rating) });
                     marker.bindPopup(`<div style="font-family: 'Chakra Petch'; text-align:center;"><strong style="font-size:15px;">${data.organization}</strong><br><br>ระดับการรักษาสิ่งแวดล้อม:<br><span style="background:${badgeColor}; color:white; padding: 2px 8px; border-radius: 12px; display:inline-block; margin-top:5px; font-weight:bold;">${data.rating}</span></div>`);
+                    
+                    markersLayer.addLayer(marker); // เพิ่มหมุดเข้ากลุ่ม
+
+                    // --- 2. เตรียมข้อมูลสำหรับแผนที่ความร้อน (Heatmap) ---
+                    // รูปแบบ: [latitude, longitude, intensity (ค่าความเข้ม)]
+                    if (footprint > 0) {
+                        heatDataArray.push([data.latitude, data.longitude, footprint]);
+                        if(footprint > maxFootprint) maxFootprint = footprint; // หาค่าสูงสุด
+                    }
                 }
             });
+
+            // นำกลุ่มหมุดไปแสดงเป็นค่าเริ่มต้น
+            markersLayer.addTo(cityMap);
+
+            // สร้าง Layer แผนที่ความร้อน (แต่ยังไม่แสดง)
+            if(heatDataArray.length > 0){
+                heatLayer = L.heatLayer(heatDataArray, {
+                    radius: 35,     // ขนาดความกว้างของจุดความร้อน
+                    blur: 25,       // ความเบลอขอบ
+                    maxZoom: 15,
+                    max: maxFootprint * 0.8, // ปรับจูนสีให้ชัดเจนขึ้น
+                    gradient: {0.4: 'blue', 0.6: 'cyan', 0.7: 'lime', 0.8: 'yellow', 1.0: 'red'} // ไล่สีจากฟ้าไปแดง
+                });
+            }
+
+            // แสดงตัวเลขสรุปผล
             document.getElementById('totalCityFootprint').innerText = sumFootprint.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
             document.getElementById('totalCityCredit').innerText = sumCredit.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
             
-            // --- คำนวณสถานะภาพรวมของเมือง ---
+            // คำนวณสถานะภาพรวมของเมือง
             let overallPercent = 0;
-            if (sumFootprint > 0) {
-                overallPercent = (sumCredit / sumFootprint) * 100;
-            } else if (sumCredit > 0) {
-                overallPercent = 100; // กรณีไม่มีคนปล่อยคาร์บอนเลยแต่มีการลด
-            }
+            if (sumFootprint > 0) overallPercent = (sumCredit / sumFootprint) * 100;
+            else if (sumCredit > 0) overallPercent = 100; 
 
-            let overallRating = "ต้องปรับปรุง";
-            let overallColor = "#ef4444"; // แดง
-            let overallEmoji = "⚠️";
+            let overallRating = "ต้องปรับปรุง"; let overallColor = "#ef4444"; let overallEmoji = "⚠️";
+            if (overallPercent >= 50) { overallRating = "ดีเยี่ยม"; overallColor = "#10b981"; overallEmoji = "🏆"; } 
+            else if (overallPercent >= 30) { overallRating = "ดีมาก"; overallColor = "#0ea5e9"; overallEmoji = "🌟"; } 
+            else if (overallPercent >= 10) { overallRating = "ดี"; overallColor = "#f59e0b"; overallEmoji = "👍"; }
 
-            if (overallPercent >= 50) { 
-                overallRating = "ดีเยี่ยม"; overallColor = "#10b981"; overallEmoji = "🏆"; 
-            } else if (overallPercent >= 30) { 
-                overallRating = "ดีมาก"; overallColor = "#0ea5e9"; overallEmoji = "🌟"; 
-            } else if (overallPercent >= 10) { 
-                overallRating = "ดี"; overallColor = "#f59e0b"; overallEmoji = "👍"; 
-            }
-
-            // นำผลลัพธ์ภาพรวมไปแสดงบนการ์ด
             const badge = document.getElementById('cityRatingBadge');
             badge.innerText = `${overallEmoji} ${overallRating}`;
             badge.style.backgroundColor = overallColor;
             document.getElementById('cityPercentText').innerText = `(ชดเชยคาร์บอนได้รวมทั้งสิ้น ${overallPercent.toFixed(2)}%)`;
 
-            // ซ่อนข้อความโหลด และแสดง UI ทั้งหมด
+            // ซ่อนข้อความโหลด และแสดง UI
             document.getElementById('loading').style.display = 'none';
             document.getElementById('summaryGrid').style.display = 'grid';
             document.getElementById('cityStatusCard').style.display = 'block';
             document.getElementById('statusBar').style.display = 'flex';
+            document.getElementById('toggleMapModeBtn').style.display = 'block';
 
-        } catch (error) { document.getElementById('loading').innerText = "❌ เกิดข้อผิดพลาดในการดึงข้อมูล"; }
+        } catch (error) { document.getElementById('loading').innerText = "❌ เกิดข้อผิดพลาดในการดึงข้อมูล"; console.log(error); }
     }
+
+    // --- ระบบปุ่มกดสลับโหมดแผนที่ (Toggle Map Mode) ---
+    document.getElementById('toggleMapModeBtn').addEventListener('click', function() {
+        if (!heatLayer) return alert("ไม่มีข้อมูลการปล่อยคาร์บอนเพียงพอสำหรับสร้าง Heat Map");
+
+        isHeatmapMode = !isHeatmapMode; // สลับสถานะ
+
+        if (isHeatmapMode) {
+            // โหมด Heatmap
+            cityMap.removeLayer(markersLayer); // ลบหมุดออก
+            heatLayer.addTo(cityMap);          // ใส่แผนที่ความร้อน
+            this.innerText = "📍 กลับไปดูหมุดพิกัดสถานะ (Markers)";
+            this.classList.add("mode-heat");   // เปลี่ยนสีปุ่ม
+            document.getElementById('statusBar').style.display = 'none'; // ซ่อนแถบอธิบายสีหมุด
+        } else {
+            // โหมด Markers ปกติ
+            cityMap.removeLayer(heatLayer);    // ลบแผนที่ความร้อนออก
+            markersLayer.addTo(cityMap);       // ใส่หมุดกลับคืน
+            this.innerText = "🔥 สลับดูความหนาแน่นการปล่อยคาร์บอน (Heat Map)";
+            this.classList.remove("mode-heat");
+            document.getElementById('statusBar').style.display = 'flex'; // แสดงแถบอธิบายสีหมุด
+        }
+    });
+
     loadDashboardData();
 </script>
 </body>
