@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Khon Kaen Carbon HUD</title>
+    <title>แพลตฟอร์มรักษ์โลก จ.ขอนแก่น</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -15,167 +15,146 @@
 
     <style>
         :root {
-            --bg-base: #030a10;
-            --bg-panel: rgba(3, 20, 25, 0.8);
-            --glow-green: #00ffcc;
-            --glow-red: #ff3366;
-            --text-main: #e0f8f5;
-            --border-tech: 1px solid rgba(0, 255, 204, 0.3);
+            --bg-body: #f4fcf7;
+            --bg-card: #ffffff;
+            --primary-green: #2ecc71;
+            --dark-green: #27ae60;
+            --text-main: #2c3e50;
+            --border-color: #d1d5db;
         }
 
         body { 
-            font-family: 'Chakra Petch', monospace; 
-            background-color: var(--bg-base); 
-            background-image: 
-                linear-gradient(rgba(0, 255, 204, 0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0, 255, 204, 0.03) 1px, transparent 1px);
-            background-size: 20px 20px;
+            font-family: 'Chakra Petch', sans-serif; 
+            background-color: var(--bg-body); 
             color: var(--text-main);
-            margin: 0; padding: 10px;
+            margin: 0; padding: 15px;
         }
         
         .container { 
             max-width: 650px; margin: auto; 
-            background: var(--bg-panel); 
+            background: var(--bg-card); 
             padding: 25px; 
-            border-radius: 4px; 
-            border: var(--border-tech);
-            box-shadow: 0 0 20px rgba(0, 255, 204, 0.1); 
-            backdrop-filter: blur(10px);
+            border-radius: 12px; 
+            box-shadow: 0 4px 15px rgba(46, 204, 113, 0.1); 
+            border-top: 5px solid var(--primary-green);
         }
 
-        h2 { text-align: center; color: var(--glow-green); text-transform: uppercase; letter-spacing: 2px; text-shadow: 0 0 10px rgba(0,255,204,0.5); border-bottom: 1px solid var(--glow-green); padding-bottom: 15px; margin-top:0;}
-        h3 { color: #a0aec0; font-size: 16px; border-left: 3px solid var(--glow-green); padding-left: 10px; text-transform: uppercase; letter-spacing: 1px; }
+        h2 { text-align: center; color: var(--dark-green); margin-top: 0; font-size: 24px;}
+        h3 { color: #34495e; font-size: 18px; border-bottom: 2px solid #e5e7eb; padding-bottom: 8px; margin-top: 25px; }
         
-        label { display: block; margin-top: 15px; font-size: 14px; color: #81e6d9; }
+        label { display: block; margin-top: 15px; font-size: 15px; font-weight: 600; color: #4b5563; }
         
         input { 
             width: 100%; padding: 12px; margin-top: 5px;
-            background: rgba(0, 0, 0, 0.6); 
-            border: 1px solid #0f3f3f; 
-            color: #fff; border-radius: 2px; 
-            box-sizing: border-box; font-family: 'Chakra Petch', monospace; font-size: 16px;
+            background: #f9fafb; 
+            border: 1px solid var(--border-color); 
+            color: var(--text-main); border-radius: 8px; 
+            box-sizing: border-box; font-family: 'Chakra Petch', sans-serif; font-size: 16px;
             transition: all 0.3s ease;
         }
-        input:focus { outline: none; border-color: var(--glow-green); box-shadow: 0 0 10px rgba(0,255,204,0.4); }
+        input:focus { outline: none; border-color: var(--primary-green); background: #fff; box-shadow: 0 0 0 3px rgba(46,204,113,0.2); }
         
-        .waste-section { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: rgba(0,0,0,0.3); padding: 10px; border: var(--border-tech); }
+        .waste-section { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: #f0fdf4; padding: 15px; border-radius: 8px; border: 1px solid #bbf7d0; margin-top: 5px;}
+        .waste-section label { margin-top: 5px; font-size: 14px; }
         
         .btn-primary { 
-            width: 100%; margin-top: 25px; padding: 15px; 
-            background: rgba(0, 255, 204, 0.1); 
-            color: var(--glow-green); 
-            border: 1px solid var(--glow-green); 
-            cursor: pointer; font-weight: bold; font-size: 18px; text-transform: uppercase; letter-spacing: 1px;
-            transition: all 0.3s;
+            width: 100%; margin-top: 25px; padding: 16px; 
+            background: var(--primary-green); 
+            color: white; 
+            border: none; border-radius: 8px;
+            cursor: pointer; font-weight: bold; font-size: 18px;
+            transition: all 0.3s; box-shadow: 0 4px 6px rgba(46,204,113,0.2);
         }
-        .btn-primary:hover { background: var(--glow-green); color: #000; box-shadow: 0 0 20px var(--glow-green); }
+        .btn-primary:hover { background: var(--dark-green); transform: translateY(-2px); }
         
         .btn-location {
-            width: 100%; padding: 12px; background: transparent; color: #cbd5e1; border: 1px dashed #475569;
-            cursor: pointer; font-family: 'Chakra Petch'; margin-bottom: 10px; transition: 0.3s;
+            width: 100%; padding: 12px; background: #e5e7eb; color: #4b5563; border: none; border-radius: 8px;
+            cursor: pointer; font-family: 'Chakra Petch'; margin-bottom: 10px; font-weight: 600; transition: 0.3s;
         }
-        .btn-location:hover { border-color: var(--glow-green); color: var(--glow-green); }
+        .btn-location:hover { background: #d1d5db; }
         
         .coord-inputs { display: flex; gap: 10px; }
+        .coord-inputs input { background: #e5e7eb; border: none; color: #6b7280; font-size: 14px;}
         
-        .result-box { margin-top: 30px; padding: 20px; background: rgba(0,0,0,0.5); border: 1px solid var(--glow-green); display: none; box-shadow: inset 0 0 20px rgba(0,255,204,0.1); }
+        .result-box { margin-top: 30px; padding: 25px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; display: none; }
         .chart-container { height: 300px; width: 100%; margin-top: 20px; }
         
-        #pickerMap, #resultMap { height: 250px; width: 100%; border: 1px solid #2d3748; filter: contrast(1.1) brightness(0.9); }
+        #pickerMap, #resultMap { height: 250px; width: 100%; border-radius: 8px; border: 1px solid var(--border-color); z-index: 1;}
         #resultMap { height: 350px; margin-top: 20px; }
 
-        .sys-log { font-size: 12px; color: #4fd1c5; text-align: center; margin-top: 10px; font-family: monospace; }
-        .rating-badge { display: inline-block; padding: 5px 15px; color: #000; font-weight: bold; text-transform: uppercase; box-shadow: 0 0 10px currentColor; }
-        
-        /* เปลี่ยนสีป๊อปอัปแผนที่ให้เป็นโทนดาร์ก */
-        .leaflet-popup-content-wrapper, .leaflet-popup-tip { background: #0f172a; color: #e2e8f0; border: 1px solid var(--glow-green); }
+        .rating-badge { display: inline-block; padding: 6px 16px; color: white; font-weight: bold; border-radius: 20px; font-size: 18px; margin-top: 5px;}
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>⚡ ENV-SYS: DATA TERMINAL</h2>
-    <div class="sys-log">LOC: KHON KAEN // GREEN ENERGY PROTOCOL</div>
+    <h2>🌿 แพลตฟอร์มรักษ์โลก จ.ขอนแก่น</h2>
+    <p style="text-align: center; color: #6b7280; font-size: 14px; margin-top: -10px;">ระบบประเมินคาร์บอนฟุตพริ้นท์และคาร์บอนเครดิต</p>
     
     <form id="carbonForm">
-        <label>[ORG_ID] ชื่อหน่วยงาน / องค์กร:</label>
-        <input type="text" id="orgName" required placeholder="INPUT DATA...">
+        <label>🏢 ชื่อหน่วยงาน / องค์กร / ครัวเรือน:</label>
+        <input type="text" id="orgName" required placeholder="ระบุชื่อเพื่อบันทึกข้อมูล...">
 
-        <h3>>> SYS.01: EMISSION DATA (FOOTPRINT)</h3>
-        <label>POWER USAGE (หน่วย/เดือน):</label>
+        <h3>🔴 ส่วนที่ 1: การปล่อยก๊าซเรือนกระจก</h3>
+        <label>⚡ ปริมาณการใช้ไฟฟ้า (หน่วย/เดือน):</label>
         <input type="number" id="electricityUsage" value="0" min="0" step="any" required>
-        <label>FOSSIL FUEL / DIESEL (ลิตร/เดือน):</label>
+        <label>⛽ ปริมาณการใช้น้ำมันเชื้อเพลิง (ลิตร/เดือน):</label>
         <input type="number" id="fuelUsage" value="0" min="0" step="any" required>
 
-        <h3>>> SYS.02: REDUCTION DATA (CREDIT)</h3>
-        <label>RECYCLED MATERIALS (กิโลกรัม/เดือน):</label>
+        <h3>🟢 ส่วนที่ 2: การลดก๊าซเรือนกระจก</h3>
+        <label>♻️ ขยะที่คัดแยกเพื่อส่งรีไซเคิล (กิโลกรัม/เดือน):</label>
         <div class="waste-section">
-            <div><label style="margin:0;">PLASTIC</label><input type="number" id="wastePlastic" value="0" min="0" step="any"></div>
-            <div><label style="margin:0;">PAPER</label><input type="number" id="wastePaper" value="0" min="0" step="any"></div>
-            <div><label style="margin:0;">GLASS</label><input type="number" id="wasteGlass" value="0" min="0" step="any"></div>
-            <div><label style="margin:0;">METAL</label><input type="number" id="wasteMetal" value="0" min="0" step="any"></div>
+            <div><label>ขวดพลาสติก:</label><input type="number" id="wastePlastic" value="0" min="0" step="any"></div>
+            <div><label>กระดาษ/ลัง:</label><input type="number" id="wastePaper" value="0" min="0" step="any"></div>
+            <div><label>ขวดแก้ว:</label><input type="number" id="wasteGlass" value="0" min="0" step="any"></div>
+            <div><label>โลหะ/กระป๋อง:</label><input type="number" id="wasteMetal" value="0" min="0" step="any"></div>
         </div>
         
-        <label>CLEAN ENERGY / SOLAR (หน่วย/เดือน):</label>
+        <label>☀️ ไฟฟ้าที่ลดได้ หรือผลิตจากโซลาร์เซลล์ (หน่วย/เดือน):</label>
         <input type="number" id="savedElectricity" value="0" min="0" step="any" required>
 
-        <h3>>> SYS.03: GEOLOCATION</h3>
-        <button type="button" class="btn-location" id="getLocationBtn">[ INITIALIZE GPS SENSOR ]</button>
+        <h3>📍 ส่วนที่ 3: ตำแหน่งที่ตั้ง</h3>
+        <button type="button" class="btn-location" id="getLocationBtn">🎯 กดเพื่อดึงพิกัดตำแหน่งปัจจุบัน</button>
+        <p style="text-align: center; font-size: 13px; color: #9ca3af; margin: 5px 0 10px 0;">(หรือเลื่อนและแตะบนแผนที่เพื่อปักหมุดด้วยตนเอง)</p>
         <div id="pickerMap"></div>
 
         <div class="coord-inputs" style="margin-top: 10px;">
-            <input type="text" id="latitude" readonly required placeholder="LATITUDE">
-            <input type="text" id="longitude" readonly required placeholder="LONGITUDE">
+            <input type="text" id="latitude" readonly required placeholder="ละติจูด">
+            <input type="text" id="longitude" readonly required placeholder="ลองจิจูด">
         </div>
 
-        <button type="submit" class="btn-primary">INITIATE ANALYSIS</button>
+        <button type="submit" class="btn-primary">บันทึกข้อมูลและดูผลประเมิน</button>
     </form>
 
     <div class="result-box" id="resultBox">
         <div id="reportContent"></div>
         <div class="chart-container"><canvas id="resultChart"></canvas></div>
-        <h3 style="text-align: center; margin-top:30px; border:none;">[ GLOBAL RADAR: KHON KAEN ]</h3>
+        <h3 style="text-align: center; margin-top:30px;">🗺️ แผนที่เครือข่ายรักษ์โลกขอนแก่น</h3>
         <div id="resultMap"></div>
     </div>
     
-    <a href="map.html" style="display: block; text-align: center; margin-top: 20px; color: var(--glow-green); text-decoration: none; border: 1px solid var(--glow-green); padding: 10px; transition: 0.3s;">>> ACCESS MAIN DASHBOARD</a>
+    <a href="map.html" style="display: block; text-align: center; margin-top: 20px; color: var(--dark-green); text-decoration: none; font-weight: bold; background: #e6f8ec; padding: 12px; border-radius: 8px; border: 1px solid #bbf7d0; transition: 0.3s;">📊 ไปที่หน้าแดชบอร์ดสรุปผลรวมทั้งจังหวัด</a>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
     import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 
-    const firebaseConfig = {
-        apiKey: "AIzaSyDMMwciq6QoLSaWK6xfdr0U3ynyahtoaSk",
-        authDomain: "studio-a33fe.firebaseapp.com",
-        databaseURL: "https://studio-a33fe-default-rtdb.asia-southeast1.firebasedatabase.app",
-        projectId: "studio-a33fe",
-        storageBucket: "studio-a33fe.firebasestorage.app",
-        messagingSenderId: "753539109404",
-        appId: "1:753539109404:web:3d916565373b192fe645d9"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+    const firebaseConfig = { apiKey: "AIzaSyDMMwciq6QoLSaWK6xfdr0U3ynyahtoaSk", authDomain: "studio-a33fe.firebaseapp.com", databaseURL: "https://studio-a33fe-default-rtdb.asia-southeast1.firebasedatabase.app", projectId: "studio-a33fe", storageBucket: "studio-a33fe.firebasestorage.app", messagingSenderId: "753539109404", appId: "1:753539109404:web:3d916565373b192fe645d9" };
+    const app = initializeApp(firebaseConfig); const db = getFirestore(app);
 
     const EF_ELECTRICITY = 0.4999, EF_DIESEL = 2.7446;      
     const EF_PLASTIC = 1.5, EF_PAPER = 0.9, EF_GLASS = 0.3, EF_METAL = 2.0;
 
-    let myChart = null; 
-    let resultMap = null; 
+    let myChart = null; let resultMap = null; 
+    Chart.defaults.font.family = "'Chakra Petch', sans-serif";
+    Chart.defaults.color = '#4b5563';
 
-    // ตั้งค่ากราฟให้เป็น Dark Theme
-    Chart.defaults.color = '#81e6d9';
-    Chart.defaults.font.family = "'Chakra Petch', monospace";
-
-    // แผนที่ Dark Mode Tile (CartoDB Dark Matter)
-    const darkMapTile = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
-
+    // แผนที่ OSM โทนสว่างปกติ
+    const mapTile = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
     const khonkaenCenter = [16.4322, 102.8236]; 
     const pickerMap = L.map('pickerMap').setView(khonkaenCenter, 13);
-    
-    L.tileLayer(darkMapTile, { attribution: '&copy; OpenStreetMap & CartoDB' }).addTo(pickerMap);
+    L.tileLayer(mapTile, { attribution: '&copy; OpenStreetMap' }).addTo(pickerMap);
 
     let pickerMarker = L.marker(khonkaenCenter, {draggable: true}).addTo(pickerMap);
     
@@ -188,57 +167,45 @@
 
     document.getElementById('getLocationBtn').addEventListener('click', () => {
         const btn = document.getElementById('getLocationBtn');
-        btn.innerText = "[ SCANNING SATELLITES... ]";
+        btn.innerText = "⏳ กำลังค้นหาตำแหน่ง...";
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
                 (position) => {
                     const latlng = [position.coords.latitude, position.coords.longitude];
-                    pickerMap.setView(latlng, 16);
-                    pickerMarker.setLatLng(latlng);
-                    updateInputs(pickerMarker.getLatLng());
-                    btn.innerText = "[ GPS SIGNAL ACQUIRED ]";
-                    btn.style.color = "#00ffcc"; btn.style.borderColor = "#00ffcc";
+                    pickerMap.setView(latlng, 16); pickerMarker.setLatLng(latlng); updateInputs(pickerMarker.getLatLng());
+                    btn.innerText = "✅ พบตำแหน่งของคุณแล้ว";
+                    btn.style.backgroundColor = "#d1fae5"; btn.style.color = "#047857";
                 },
-                (error) => {
-                    alert("GPS SIGNAL LOST. MANUAL OVERRIDE REQUIRED.");
-                    btn.innerText = "[ INITIALIZE GPS SENSOR ]";
-                }
+                (error) => { alert("ไม่สามารถดึงตำแหน่งได้ กรุณาแตะเลือกบนแผนที่โดยตรงครับ"); btn.innerText = "🎯 กดเพื่อดึงพิกัดตำแหน่งปัจจุบัน"; }
             );
         }
     });
 
     const getMarkerIcon = (rating) => {
-        let color = 'red'; 
-        if (rating === 'ดีเยี่ยม') color = 'green';
-        else if (rating === 'ดีมาก') color = 'blue';
-        else if (rating === 'ดี') color = 'gold';
-        return new L.Icon({
-            iconUrl: `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-${color}.png`,
-            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-            iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34]
-        });
+        let color = 'red'; if (rating === 'ดีเยี่ยม') color = 'green'; else if (rating === 'ดีมาก') color = 'blue'; else if (rating === 'ดี') color = 'gold';
+        return new L.Icon({ iconUrl: `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-${color}.png`, shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png', iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34] });
     };
 
     document.getElementById('carbonForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         const lat = parseFloat(document.getElementById('latitude').value);
         const lng = parseFloat(document.getElementById('longitude').value);
-        if (isNaN(lat) || isNaN(lng)) return alert("ERROR: COORDINATES REQUIRED.");
+        if (isNaN(lat) || isNaN(lng)) return alert("กรุณาระบุพิกัดสถานที่ในแผนที่ก่อนบันทึกข้อมูลครับ");
 
         const orgName = document.getElementById('orgName').value;
         const totalFootprint = ((parseFloat(document.getElementById('electricityUsage').value)||0)*EF_ELECTRICITY) + ((parseFloat(document.getElementById('fuelUsage').value)||0)*EF_DIESEL);
         const totalCredit = ((parseFloat(document.getElementById('wastePlastic').value)||0)*EF_PLASTIC) + ((parseFloat(document.getElementById('wastePaper').value)||0)*EF_PAPER) + ((parseFloat(document.getElementById('wasteGlass').value)||0)*EF_GLASS) + ((parseFloat(document.getElementById('wasteMetal').value)||0)*EF_METAL) + ((parseFloat(document.getElementById('savedElectricity').value)||0)*EF_ELECTRICITY);
 
         let compensationPercent = totalFootprint > 0 ? (totalCredit / totalFootprint) * 100 : (totalCredit > 0 ? 100 : 0);
-        let rating = "ต้องปรับปรุง"; let badgeColor = "#ff3366";
-        if (compensationPercent >= 50) { rating = "ดีเยี่ยม"; badgeColor = "#00ffcc"; } 
-        else if (compensationPercent >= 30) { rating = "ดีมาก"; badgeColor = "#33ccff"; } 
-        else if (compensationPercent >= 10) { rating = "ดี"; badgeColor = "#ffcc00"; } 
+        let rating = "ต้องปรับปรุง"; let badgeColor = "#ef4444";
+        if (compensationPercent >= 50) { rating = "ดีเยี่ยม"; badgeColor = "#10b981"; } 
+        else if (compensationPercent >= 30) { rating = "ดีมาก"; badgeColor = "#0ea5e9"; } 
+        else if (compensationPercent >= 10) { rating = "ดี"; badgeColor = "#f59e0b"; } 
 
         const reportData = { organization: orgName, totalFootprint_kgCO2: Number(totalFootprint.toFixed(2)), totalCredit_kgCO2: Number(totalCredit.toFixed(2)), compensationPercent: Number(compensationPercent.toFixed(2)), rating: rating, latitude: lat, longitude: lng, timestamp: new Date() };
 
         const submitBtn = document.querySelector('button[type="submit"]');
-        submitBtn.innerText = "PROCESSING DATA..."; submitBtn.disabled = true;
+        submitBtn.innerText = "⏳ กำลังบันทึกข้อมูล..."; submitBtn.disabled = true;
 
         try {
             await addDoc(collection(db, "carbon_reports"), reportData);
@@ -246,13 +213,14 @@
             const resultBox = document.getElementById('resultBox');
             resultBox.style.display = 'block';
             document.getElementById('reportContent').innerHTML = `
-                <div class="sys-log">ANALYSIS COMPLETE</div>
-                <h3 style="color:#fff; text-align:center; border:none; margin-top:5px;">[ ${orgName} ]</h3>
-                <p style="color:#ff3366;">[EMISSION] FOOTPRINT: <strong>${reportData.totalFootprint_kgCO2}</strong> kgCO2e</p>
-                <p style="color:#00ffcc;">[REDUCTION] CREDIT: <strong>${reportData.totalCredit_kgCO2}</strong> kgCO2e</p>
-                <div style="text-align: center; margin-top: 15px;">
-                    <span class="rating-badge" style="background-color: ${badgeColor}; box-shadow: 0 0 15px ${badgeColor};">${rating}</span>
-                    <p style="color:#81e6d9; font-size:12px; margin-top:10px;">NEUTRALIZATION: ${reportData.compensationPercent}%</p>
+                <h3 style="text-align:center; margin-top:0;">📝 สรุปผลการประเมิน</h3>
+                <p style="text-align:center; font-size: 18px; font-weight:bold; color: #1f2937;">${orgName}</p>
+                <p style="color:#ef4444; font-size:16px;">🔴 ปล่อยคาร์บอน: <strong>${reportData.totalFootprint_kgCO2}</strong> kgCO2e</p>
+                <p style="color:#10b981; font-size:16px;">🟢 ลดคาร์บอนได้: <strong>${reportData.totalCredit_kgCO2}</strong> kgCO2e</p>
+                <div style="text-align: center; margin-top: 20px;">
+                    <p style="margin: 0; color: #6b7280; font-size: 14px;">ระดับการรักษาสิ่งแวดล้อม</p>
+                    <span class="rating-badge" style="background-color: ${badgeColor};">${rating}</span>
+                    <p style="color:#4b5563; font-size:14px; margin-top:8px;">(สามารถชดเชยคาร์บอนได้ ${reportData.compensationPercent}%)</p>
                 </div>
             `;
 
@@ -261,18 +229,18 @@
             myChart = new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: ['SYS METRICS (kgCO2e)'],
+                    labels: ['ปริมาณก๊าซเรือนกระจก (kgCO2e)'],
                     datasets: [
-                        { label: 'EMISSION (🔴)', data: [reportData.totalFootprint_kgCO2], backgroundColor: 'rgba(255, 51, 102, 0.8)', borderColor: '#ff3366', borderWidth: 1 },
-                        { label: 'CREDIT (🟢)', data: [reportData.totalCredit_kgCO2], backgroundColor: 'rgba(0, 255, 204, 0.8)', borderColor: '#00ffcc', borderWidth: 1 }
+                        { label: '🔴 ปล่อย (Footprint)', data: [reportData.totalFootprint_kgCO2], backgroundColor: '#fca5a5', borderColor: '#ef4444', borderWidth: 1 },
+                        { label: '🟢 ลดได้ (Credit)', data: [reportData.totalCredit_kgCO2], backgroundColor: '#6ee7b7', borderColor: '#10b981', borderWidth: 1 }
                     ]
                 },
-                options: { responsive: true, maintainAspectRatio: false, scales: { y: { grid: { color: 'rgba(255,255,255,0.1)' } }, x: { grid: { color: 'rgba(255,255,255,0.1)' } } } }
+                options: { responsive: true, maintainAspectRatio: false }
             });
 
             if (!resultMap) {
                 resultMap = L.map('resultMap').setView([lat, lng], 13);
-                L.tileLayer(darkMapTile, { attribution: '&copy; CartoDB' }).addTo(resultMap);
+                L.tileLayer(mapTile, { attribution: '&copy; OpenStreetMap' }).addTo(resultMap);
             } else { resultMap.setView([lat, lng], 13); resultMap.eachLayer((layer) => { if (layer instanceof L.Marker) resultMap.removeLayer(layer); }); }
 
             setTimeout(() => { resultMap.invalidateSize(); }, 300);
@@ -283,11 +251,11 @@
                 const data = doc.data();
                 if (data.latitude && data.longitude) {
                     const marker = L.marker([data.latitude, data.longitude], { icon: getMarkerIcon(data.rating) }).addTo(resultMap);
-                    marker.bindPopup(`<div style="font-family: monospace;"><b>${data.organization}</b><br>STATUS: <span style="color:${badgeColor}">${data.rating}</span></div>`);
+                    marker.bindPopup(`<div style="font-family: 'Chakra Petch'; text-align:center;"><b>${data.organization}</b><br>ระดับ: <span style="color:${badgeColor}; font-weight:bold;">${data.rating}</span></div>`);
                     if (data.organization === orgName) marker.openPopup();
                 }
             });
-        } catch (error) { alert("SYS_ERROR: DB WRITE FAILED."); } finally { submitBtn.innerText = "INITIATE ANALYSIS"; submitBtn.disabled = false; }
+        } catch (error) { alert("เกิดข้อผิดพลาดในการบันทึกข้อมูล กรุณาลองใหม่อีกครั้ง"); } finally { submitBtn.innerText = "บันทึกข้อมูลและดูผลประเมิน"; submitBtn.disabled = false; }
     });
 </script>
 </body>
