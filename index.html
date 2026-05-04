@@ -16,25 +16,52 @@
     <style>
         :root { --bg-body: #f4fcf7; --bg-card: #ffffff; --primary-green: #2ecc71; --dark-green: #27ae60; --text-main: #2c3e50; --border-color: #d1d5db; }
         body { font-family: 'Chakra Petch', sans-serif; background-color: var(--bg-body); color: var(--text-main); margin: 0; padding: 15px; }
-        .container { max-width: 650px; margin: auto; background: var(--bg-card); padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(46, 204, 113, 0.1); border-top: 5px solid var(--primary-green); }
-        h2 { text-align: center; color: var(--dark-green); margin-top: 0; font-size: 22px;}
-        h3 { color: #34495e; font-size: 18px; border-bottom: 2px solid #e5e7eb; padding-bottom: 8px; margin-top: 25px; }
+        
+        /* ปรับความกว้าง Container ให้รองรับ 2 คอลัมน์ */
+        .container { max-width: 850px; margin: auto; background: var(--bg-card); padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(46, 204, 113, 0.1); border-top: 5px solid var(--primary-green); }
+        
+        h2 { text-align: center; color: var(--dark-green); margin-top: 0; font-size: 24px;}
+        h3 { color: #34495e; font-size: 18px; border-bottom: 2px solid #e5e7eb; padding-bottom: 8px; margin-top: 0; margin-bottom: 15px;}
         label { display: block; margin-top: 15px; font-size: 15px; font-weight: 600; color: #4b5563; }
+        
         input { width: 100%; padding: 12px; margin-top: 5px; background: #f9fafb; border: 1px solid var(--border-color); color: var(--text-main); border-radius: 8px; box-sizing: border-box; font-family: 'Chakra Petch', sans-serif; font-size: 16px; transition: all 0.3s ease; }
         input:focus { outline: none; border-color: var(--primary-green); background: #fff; box-shadow: 0 0 0 3px rgba(46,204,113,0.2); }
         
-        /* กรอบสำหรับจัดกลุ่มที่อยู่ */
+        /* จัดกลุ่มปุ่มค้นหา */
+        .search-group { display: flex; gap: 10px; margin-top: 5px; }
+        .search-group input { margin-top: 0; }
+        .btn-search { background: #3b82f6; color: white; border: none; border-radius: 8px; padding: 0 20px; font-family: 'Chakra Petch'; font-weight: bold; cursor: pointer; white-space: nowrap; transition: 0.3s; font-size: 16px;}
+        .btn-search:hover { background: #2563eb; }
+
         .location-group { background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; margin-top: 15px; }
         .location-group label { margin-top: 0; color: #3b82f6;}
 
+        /* CSS สำหรับ Layout 2 คอลัมน์ */
+        .two-col-layout { display: grid; grid-template-columns: 1fr; gap: 20px; margin-top: 25px; }
+        .data-panel { background: #ffffff; padding: 20px; border-radius: 8px; border: 1px solid #e5e7eb; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        .panel-red { border-top: 4px solid #ef4444; }
+        .panel-green { border-top: 4px solid #10b981; }
+
+        @media(min-width: 768px) {
+            .two-col-layout { grid-template-columns: 1fr 1fr; }
+            .search-group { flex-direction: row; }
+        }
+        @media(max-width: 767px) {
+            .search-group { flex-direction: column; }
+            .btn-search { padding: 12px; }
+        }
+
         .waste-section { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: #f0fdf4; padding: 15px; border-radius: 8px; border: 1px solid #bbf7d0; margin-top: 5px;}
         .waste-section label { margin-top: 5px; font-size: 14px; }
+        
         .btn-primary { width: 100%; margin-top: 25px; padding: 16px; background: var(--primary-green); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 18px; transition: all 0.3s; box-shadow: 0 4px 6px rgba(46,204,113,0.2); }
         .btn-primary:hover { background: var(--dark-green); transform: translateY(-2px); }
         .btn-location { width: 100%; padding: 12px; background: #e5e7eb; color: #4b5563; border: none; border-radius: 8px; cursor: pointer; font-family: 'Chakra Petch'; margin-top: 10px; font-weight: 600; transition: 0.3s; }
         .btn-location:hover { background: #d1d5db; }
+        
         .coord-inputs { display: flex; gap: 10px; margin-top: 10px; }
         .coord-inputs input { background: #e5e7eb; border: none; color: #6b7280; font-size: 14px; margin-top: 0;}
+        
         .result-box { margin-top: 30px; padding: 25px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; display: none; }
         .chart-container { height: 300px; width: 100%; margin-top: 20px; }
         #pickerMap, #resultMap { height: 250px; width: 100%; border-radius: 8px; border: 1px solid var(--border-color); z-index: 1;}
@@ -49,11 +76,13 @@
     
     <form id="carbonForm">
         <label>🏢 ชื่อหน่วยงาน / องค์กร / ครัวเรือน:</label>
-        <input type="text" id="orgName" required placeholder="พิมพ์ชื่อแล้วระบบจะปักหมุดพิกัดให้อัตโนมัติ...">
+        <div class="search-group">
+            <input type="text" id="orgName" required placeholder="พิมพ์ชื่อสถานที่เพื่อค้นหาพิกัด...">
+            <button type="button" id="searchOrgBtn" class="btn-search">🔍 ค้นหาพิกัด</button>
+        </div>
 
-        <!-- ย้ายแผนที่มาไว้ใต้ชื่อหน่วยงานทันที -->
         <div class="location-group">
-            <label>📍 พิกัดตำแหน่ง (อัตโนมัติจากชื่อ หรือลากหมุดเพื่อปรับแก้)</label>
+            <label>📍 พิกัดตำแหน่ง (ค้นหาอัตโนมัติ หรือลากหมุดบนแผนที่เพื่อปรับแก้)</label>
             <p id="autoGeoStatus" style="font-size: 13px; font-weight: bold; text-align: center; display: none; margin: 10px 0;"></p>
             
             <div id="pickerMap" style="margin-top: 10px;"></div>
@@ -66,26 +95,39 @@
             <button type="button" class="btn-location" id="getLocationBtn">🎯 กดเพื่อใช้พิกัดตำแหน่งปัจจุบัน (GPS)</button>
         </div>
 
-        <h3>🔴 ส่วนที่ 1: การปล่อยก๊าซเรือนกระจก</h3>
-        <label>⚡ ค่าไฟฟ้าที่จ่ายจริง (บาท/เดือน):</label>
-        <input type="number" id="electricityUsage" value="0" min="0" step="any" required>
-        <p style="font-size: 12px; color: #9ca3af; margin: 3px 0 0 0;">*ระบบจะคำนวณแปลงเป็นหน่วย (kWh) ให้อัตโนมัติ</p>
+        <!-- แบ่ง 2 คอลัมน์ -->
+        <div class="two-col-layout">
+            
+            <!-- คอลัมน์ซ้าย: การปล่อย -->
+            <div class="data-panel panel-red">
+                <h3 style="color: #ef4444;">🔴 ส่วนที่ 1: การปล่อยก๊าซเรือนกระจก</h3>
+                
+                <label>⚡ ค่าไฟฟ้าที่จ่ายจริง (บาท/เดือน):</label>
+                <input type="number" id="electricityUsage" value="0" min="0" step="any" required>
+                <p style="font-size: 12px; color: #9ca3af; margin: 3px 0 0 0;">*แปลงเป็นหน่วย (kWh) อัตโนมัติ</p>
 
-        <label>⛽ ค่าน้ำมันเชื้อเพลิง (บาท/เดือน):</label>
-        <input type="number" id="fuelUsage" value="0" min="0" step="any" required>
-        <p style="font-size: 12px; color: #9ca3af; margin: 3px 0 0 0;">*ระบบจะคำนวณแปลงเป็นลิตรให้อัตโนมัติ (อ้างอิงดีเซล ~32 บาท/ลิตร)</p>
+                <label>⛽ ค่าน้ำมันเชื้อเพลิง (บาท/เดือน):</label>
+                <input type="number" id="fuelUsage" value="0" min="0" step="any" required>
+                <p style="font-size: 12px; color: #9ca3af; margin: 3px 0 0 0;">*แปลงเป็นลิตรให้อัตโนมัติ (อ้างอิงดีเซล ~42 บาท/ลิตร)</p>
+            </div>
 
-        <h3>🟢 ส่วนที่ 2: การลดก๊าซเรือนกระจก</h3>
-        <label>♻️ ขยะที่คัดแยกเพื่อส่งรีไซเคิล (กิโลกรัม/เดือน):</label>
-        <div class="waste-section">
-            <div><label>ขวดพลาสติก:</label><input type="number" id="wastePlastic" value="0" min="0" step="any"></div>
-            <div><label>กระดาษ/ลัง:</label><input type="number" id="wastePaper" value="0" min="0" step="any"></div>
-            <div><label>ขวดแก้ว:</label><input type="number" id="wasteGlass" value="0" min="0" step="any"></div>
-            <div><label>โลหะ/กระป๋อง:</label><input type="number" id="wasteMetal" value="0" min="0" step="any"></div>
+            <!-- คอลัมน์ขวา: การลด -->
+            <div class="data-panel panel-green">
+                <h3 style="color: #10b981;">🟢 ส่วนที่ 2: การลดก๊าซเรือนกระจก</h3>
+                
+                <label>♻️ ขยะที่คัดแยกเพื่อส่งรีไซเคิล (กิโลกรัม/เดือน):</label>
+                <div class="waste-section">
+                    <div><label style="margin-top:0;">พลาสติก:</label><input type="number" id="wastePlastic" value="0" min="0" step="any"></div>
+                    <div><label style="margin-top:0;">กระดาษ/ลัง:</label><input type="number" id="wastePaper" value="0" min="0" step="any"></div>
+                    <div><label style="margin-top:0;">ขวดแก้ว:</label><input type="number" id="wasteGlass" value="0" min="0" step="any"></div>
+                    <div><label style="margin-top:0;">โลหะ/กระป๋อง:</label><input type="number" id="wasteMetal" value="0" min="0" step="any"></div>
+                </div>
+                
+                <label>☀️ ประหยัดค่าไฟได้ จากโซลาร์เซลล์ (บาท/เดือน):</label>
+                <input type="number" id="savedElectricity" value="0" min="0" step="any" required>
+            </div>
+
         </div>
-        
-        <label>☀️ ประหยัดค่าไฟได้ จากโซลาร์เซลล์/ลดใช้ (บาท/เดือน):</label>
-        <input type="number" id="savedElectricity" value="0" min="0" step="any" required>
 
         <button type="submit" class="btn-primary">บันทึกข้อมูลและดูผลประเมิน</button>
     </form>
@@ -111,7 +153,9 @@
     const EF_ELECTRICITY = 0.4999, EF_DIESEL = 2.7446;      
     const EF_PLASTIC = 1.5, EF_PAPER = 0.9, EF_GLASS = 0.3, EF_METAL = 2.0;
     const AVG_ELEC_RATE = 4.5; 
-    const AVG_DIESEL_RATE = 32.0; 
+    
+    // อัปเดตราคาน้ำมันดีเซลเป็น 42 บาท/ลิตร
+    const AVG_DIESEL_RATE = 42.0; 
 
     let myChart = null; let resultMap = null; 
     Chart.defaults.font.family = "'Chakra Petch', sans-serif";
@@ -135,19 +179,21 @@
     // เมื่อแตะบนแผนที่
     pickerMap.on('click', function(e) { pickerMarker.setLatLng(e.latlng); updateInputs(e.latlng); });
 
-    // === 🔍 ระบบค้นหาพิกัดอัตโนมัติเมื่อพิมพ์ชื่อเสร็จ ===
-    document.getElementById('orgName').addEventListener('change', async (e) => {
-        const orgName = e.target.value.trim();
+    // === 🔍 ระบบค้นหาพิกัดผ่านปุ่ม "ค้นหา" ===
+    document.getElementById('searchOrgBtn').addEventListener('click', async () => {
+        const orgName = document.getElementById('orgName').value.trim();
         const statusText = document.getElementById('autoGeoStatus');
         
-        if (!orgName) return;
+        if (!orgName) {
+            alert("กรุณาพิมพ์ชื่อหน่วยงานก่อนกดค้นหาครับ");
+            return;
+        }
 
         statusText.style.display = 'block';
         statusText.innerText = "⏳ กำลังค้นหาพิกัดอัตโนมัติบนแผนที่...";
         statusText.style.color = "#f59e0b"; 
 
         try {
-            // ค้นหาโดยพ่วงคำว่า "ขอนแก่น" เพื่อให้ได้พิกัดในจังหวัดแม่นยำขึ้น
             const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(orgName + ' ขอนแก่น')}&limit=1`);
             const geoData = await response.json();
 
@@ -156,14 +202,14 @@
                 const lng = parseFloat(geoData[0].lon);
                 
                 const latlng = [lat, lng];
-                pickerMap.setView(latlng, 16); // ซูมเข้าไปที่จุดที่เจอ
+                pickerMap.setView(latlng, 16); 
                 pickerMarker.setLatLng(latlng);
                 updateInputs(pickerMarker.getLatLng());
 
-                statusText.innerText = "✅ ปักหมุดอัตโนมัติสำเร็จ! (สามารถขยับหมุดเพื่อปรับตำแหน่งได้)";
+                statusText.innerText = "✅ ค้นหาสำเร็จ! (สามารถขยับหมุดเพื่อปรับตำแหน่งให้ตรงจุดได้)";
                 statusText.style.color = "#10b981"; 
             } else {
-                statusText.innerText = "⚠️ ค้นหาพิกัดอัตโนมัติไม่พบ กรุณาเลื่อนและแตะแผนที่เพื่อปักหมุดด้วยตนเอง";
+                statusText.innerText = "⚠️ ค้นหาไม่พบ กรุณาพิมพ์ให้ชัดเจนขึ้น หรือลากหมุดบนแผนที่เพื่อปักด้วยตนเอง";
                 statusText.style.color = "#ef4444"; 
             }
         } catch (error) {
@@ -203,7 +249,7 @@
         e.preventDefault();
         const lat = parseFloat(document.getElementById('latitude').value);
         const lng = parseFloat(document.getElementById('longitude').value);
-        if (isNaN(lat) || isNaN(lng)) return alert("กรุณาระบุพิกัดสถานที่ในแผนที่ก่อนบันทึกข้อมูลครับ");
+        if (isNaN(lat) || isNaN(lng)) return alert("กรุณาระบุพิกัดสถานที่ในแผนที่ก่อนบันทึกข้อมูลครับ (กดปุ่มค้นหา หรือลากหมุด)");
 
         const orgName = document.getElementById('orgName').value;
         
@@ -214,7 +260,7 @@
 
         const electricityKWh = electricityTHB / AVG_ELEC_RATE;
         const savedElectricityKWh = savedElectricityTHB / AVG_ELEC_RATE;
-        const fuelLiters = fuelTHB / AVG_DIESEL_RATE;
+        const fuelLiters = fuelTHB / AVG_DIESEL_RATE; // ใช้ 42 บาท/ลิตร
 
         // ข้อมูลขยะ
         const plastic = parseFloat(document.getElementById('wastePlastic').value) || 0;
