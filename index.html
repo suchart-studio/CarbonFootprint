@@ -45,7 +45,7 @@
     
     <form id="carbonForm">
         <label>🏢 ชื่อหน่วยงาน / องค์กร / ครัวเรือน:</label>
-        <input type="text" id="orgName" required placeholder="ระบุชื่อเพื่อบันทึกข้อมูล...">
+        <input type="text" id="orgName" required placeholder="พิมพ์ชื่อแล้วระบบจะปักหมุดพิกัดให้อัตโนมัติ...">
 
         <h3>🔴 ส่วนที่ 1: การปล่อยก๊าซเรือนกระจก</h3>
         <label>⚡ ค่าไฟฟ้าที่จ่ายจริง (บาท/เดือน):</label>
@@ -69,8 +69,12 @@
         <input type="number" id="savedElectricity" value="0" min="0" step="any" required>
 
         <h3>📍 ส่วนที่ 3: ตำแหน่งที่ตั้ง</h3>
-        <button type="button" class="btn-location" id="getLocationBtn">🎯 กดเพื่อดึงพิกัดตำแหน่งปัจจุบัน</button>
-        <p style="text-align: center; font-size: 13px; color: #9ca3af; margin: 5px 0 10px 0;">(หรือเลื่อนและแตะบนแผนที่เพื่อปักหมุดด้วยตนเอง)</p>
+        <button type="button" class="btn-location" id="getLocationBtn">🎯 กดเพื่อดึงพิกัดตำแหน่งปัจจุบัน (GPS)</button>
+        <p style="text-align: center; font-size: 13px; color: #9ca3af; margin: 5px 0 5px 0;">(หรือลากหมุดบนแผนที่เพื่อระบุตำแหน่งที่แม่นยำ)</p>
+        
+        <!-- ข้อความแจ้งเตือนสถานะการดึงพิกัดอัตโนมัติ -->
+        <p id="autoGeoStatus" style="font-size: 13px; font-weight: bold; text-align: center; display: none;"></p>
+        
         <div id="pickerMap"></div>
 
         <div class="coord-inputs" style="margin-top: 10px;">
@@ -101,10 +105,8 @@
     // อัตราการคำนวณมาตรฐาน
     const EF_ELECTRICITY = 0.4999, EF_DIESEL = 2.7446;      
     const EF_PLASTIC = 1.5, EF_PAPER = 0.9, EF_GLASS = 0.3, EF_METAL = 2.0;
-    
-    // อัตราค่าไฟฟ้าและน้ำมันเฉลี่ย สำหรับคำนวณย้อนกลับ
-    const AVG_ELEC_RATE = 4.5; // บาท/หน่วย
-    const AVG_DIESEL_RATE = 32.0; // บาท/ลิตร
+    const AVG_ELEC_RATE = 4.5; 
+    const AVG_DIESEL_RATE = 32.0; 
 
     let myChart = null; let resultMap = null; 
     Chart.defaults.font.family = "'Chakra Petch', sans-serif";
@@ -121,11 +123,54 @@
         document.getElementById('latitude').value = latlng.lat.toFixed(6);
         document.getElementById('longitude').value = latlng.lng.toFixed(6);
     }
+
+    // เมื่อลากหมุดแผนที่
     pickerMarker.on('dragend', function (e) { updateInputs(pickerMarker.getLatLng()); });
+    
+    // เมื่อแตะบนแผนที่
     pickerMap.on('click', function(e) { pickerMarker.setLatLng(e.latlng); updateInputs(e.latlng); });
 
+    // === 🔍 ระบบค้นหาพิกัดอัตโนมัติเมื่อพิมพ์ชื่อเสร็จ ===
+    document.getElementById('orgName').addEventListener('change', async (e) => {
+        const orgName = e.target.value.trim();
+        const statusText = document.getElementById('autoGeoStatus');
+        
+        if (!orgName) return;
+
+        statusText.style.display = 'block';
+        statusText.innerText = "⏳ กำลังค้นหาพิกัดอัตโนมัติบนแผนที่...";
+        statusText.style.color = "#f59e0b"; // สีส้ม
+
+        try {
+            // ค้นหาโดยพ่วงคำว่า "ขอนแก่น" เพื่อให้ได้พิกัดในจังหวัดแม่นยำขึ้น
+            const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(orgName + ' ขอนแก่น')}&limit=1`);
+            const geoData = await response.json();
+
+            if (geoData && geoData.length > 0) {
+                const lat = parseFloat(geoData[0].lat);
+                const lng = parseFloat(geoData[0].lon);
+                
+                const latlng = [lat, lng];
+                pickerMap.setView(latlng, 16); // ซูมเข้าไปที่จุดที่เจอ
+                pickerMarker.setLatLng(latlng);
+                updateInputs(pickerMarker.getLatLng());
+
+                statusText.innerText = "✅ ปักหมุดอัตโนมัติสำเร็จ! (สามารถเลื่อนหมุดเพื่อปรับตำแหน่งให้เป๊ะขึ้นได้)";
+                statusText.style.color = "#10b981"; // สีเขียว
+            } else {
+                statusText.innerText = "⚠️ ค้นหาพิกัดอัตโนมัติไม่พบ กรุณาเลื่อนและแตะแผนที่เพื่อปักหมุดด้วยตนเอง";
+                statusText.style.color = "#ef4444"; // สีแดง
+            }
+        } catch (error) {
+            statusText.innerText = "❌ เกิดข้อผิดพลาดในการเชื่อมต่อระบบแผนที่";
+            statusText.style.color = "#ef4444";
+        }
+    });
+
+    // ปุ่มกดเพื่อใช้พิกัด GPS ปัจจุบัน
     document.getElementById('getLocationBtn').addEventListener('click', () => {
         const btn = document.getElementById('getLocationBtn');
+        const statusText = document.getElementById('autoGeoStatus');
         btn.innerText = "⏳ กำลังค้นหาตำแหน่ง...";
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
@@ -134,8 +179,9 @@
                     pickerMap.setView(latlng, 16); pickerMarker.setLatLng(latlng); updateInputs(pickerMarker.getLatLng());
                     btn.innerText = "✅ พบตำแหน่งของคุณแล้ว";
                     btn.style.backgroundColor = "#d1fae5"; btn.style.color = "#047857";
+                    statusText.style.display = 'none'; // ซ่อนสถานะพิมพ์ชื่อ
                 },
-                (error) => { alert("ไม่สามารถดึงตำแหน่งได้ กรุณาแตะเลือกบนแผนที่โดยตรงครับ"); btn.innerText = "🎯 กดเพื่อดึงพิกัดตำแหน่งปัจจุบัน"; }
+                (error) => { alert("ไม่สามารถดึงตำแหน่งได้ กรุณาแตะเลือกบนแผนที่โดยตรงครับ"); btn.innerText = "🎯 กดเพื่อดึงพิกัดตำแหน่งปัจจุบัน (GPS)"; }
             );
         }
     });
@@ -165,7 +211,7 @@
         const savedElectricityKWh = savedElectricityTHB / AVG_ELEC_RATE;
         const fuelLiters = fuelTHB / AVG_DIESEL_RATE;
 
-        // ข้อมูลขยะ (เป็นกิโลกรัมเหมือนเดิม)
+        // ข้อมูลขยะ
         const plastic = parseFloat(document.getElementById('wastePlastic').value) || 0;
         const paper = parseFloat(document.getElementById('wastePaper').value) || 0;
         const glass = parseFloat(document.getElementById('wasteGlass').value) || 0;
