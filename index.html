@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>แพลตฟอร์มรักษ์โลก จ.ขอนแก่น</title>
+    <title>ระบบประเมินคาร์บอนฟุตพริ้นท์และคาร์บอนเครดิต</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -17,19 +17,24 @@
         :root { --bg-body: #f4fcf7; --bg-card: #ffffff; --primary-green: #2ecc71; --dark-green: #27ae60; --text-main: #2c3e50; --border-color: #d1d5db; }
         body { font-family: 'Chakra Petch', sans-serif; background-color: var(--bg-body); color: var(--text-main); margin: 0; padding: 15px; }
         .container { max-width: 650px; margin: auto; background: var(--bg-card); padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(46, 204, 113, 0.1); border-top: 5px solid var(--primary-green); }
-        h2 { text-align: center; color: var(--dark-green); margin-top: 0; font-size: 24px;}
+        h2 { text-align: center; color: var(--dark-green); margin-top: 0; font-size: 22px;}
         h3 { color: #34495e; font-size: 18px; border-bottom: 2px solid #e5e7eb; padding-bottom: 8px; margin-top: 25px; }
         label { display: block; margin-top: 15px; font-size: 15px; font-weight: 600; color: #4b5563; }
         input { width: 100%; padding: 12px; margin-top: 5px; background: #f9fafb; border: 1px solid var(--border-color); color: var(--text-main); border-radius: 8px; box-sizing: border-box; font-family: 'Chakra Petch', sans-serif; font-size: 16px; transition: all 0.3s ease; }
         input:focus { outline: none; border-color: var(--primary-green); background: #fff; box-shadow: 0 0 0 3px rgba(46,204,113,0.2); }
+        
+        /* กรอบสำหรับจัดกลุ่มที่อยู่ */
+        .location-group { background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; margin-top: 15px; }
+        .location-group label { margin-top: 0; color: #3b82f6;}
+
         .waste-section { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: #f0fdf4; padding: 15px; border-radius: 8px; border: 1px solid #bbf7d0; margin-top: 5px;}
         .waste-section label { margin-top: 5px; font-size: 14px; }
         .btn-primary { width: 100%; margin-top: 25px; padding: 16px; background: var(--primary-green); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 18px; transition: all 0.3s; box-shadow: 0 4px 6px rgba(46,204,113,0.2); }
         .btn-primary:hover { background: var(--dark-green); transform: translateY(-2px); }
-        .btn-location { width: 100%; padding: 12px; background: #e5e7eb; color: #4b5563; border: none; border-radius: 8px; cursor: pointer; font-family: 'Chakra Petch'; margin-bottom: 10px; font-weight: 600; transition: 0.3s; }
+        .btn-location { width: 100%; padding: 12px; background: #e5e7eb; color: #4b5563; border: none; border-radius: 8px; cursor: pointer; font-family: 'Chakra Petch'; margin-top: 10px; font-weight: 600; transition: 0.3s; }
         .btn-location:hover { background: #d1d5db; }
-        .coord-inputs { display: flex; gap: 10px; }
-        .coord-inputs input { background: #e5e7eb; border: none; color: #6b7280; font-size: 14px;}
+        .coord-inputs { display: flex; gap: 10px; margin-top: 10px; }
+        .coord-inputs input { background: #e5e7eb; border: none; color: #6b7280; font-size: 14px; margin-top: 0;}
         .result-box { margin-top: 30px; padding: 25px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; display: none; }
         .chart-container { height: 300px; width: 100%; margin-top: 20px; }
         #pickerMap, #resultMap { height: 250px; width: 100%; border-radius: 8px; border: 1px solid var(--border-color); z-index: 1;}
@@ -40,12 +45,26 @@
 <body>
 
 <div class="container">
-    <h2>🌿 แพลตฟอร์มรักษ์โลก จ.ขอนแก่น</h2>
-    <p style="text-align: center; color: #6b7280; font-size: 14px; margin-top: -10px;">ระบบประเมินคาร์บอนฟุตพริ้นท์และคาร์บอนเครดิต</p>
+    <h2>ระบบประเมินคาร์บอนฟุตพริ้นท์และคาร์บอนเครดิต</h2>
     
     <form id="carbonForm">
         <label>🏢 ชื่อหน่วยงาน / องค์กร / ครัวเรือน:</label>
         <input type="text" id="orgName" required placeholder="พิมพ์ชื่อแล้วระบบจะปักหมุดพิกัดให้อัตโนมัติ...">
+
+        <!-- ย้ายแผนที่มาไว้ใต้ชื่อหน่วยงานทันที -->
+        <div class="location-group">
+            <label>📍 พิกัดตำแหน่ง (อัตโนมัติจากชื่อ หรือลากหมุดเพื่อปรับแก้)</label>
+            <p id="autoGeoStatus" style="font-size: 13px; font-weight: bold; text-align: center; display: none; margin: 10px 0;"></p>
+            
+            <div id="pickerMap" style="margin-top: 10px;"></div>
+
+            <div class="coord-inputs">
+                <input type="text" id="latitude" readonly required placeholder="ละติจูด">
+                <input type="text" id="longitude" readonly required placeholder="ลองจิจูด">
+            </div>
+
+            <button type="button" class="btn-location" id="getLocationBtn">🎯 กดเพื่อใช้พิกัดตำแหน่งปัจจุบัน (GPS)</button>
+        </div>
 
         <h3>🔴 ส่วนที่ 1: การปล่อยก๊าซเรือนกระจก</h3>
         <label>⚡ ค่าไฟฟ้าที่จ่ายจริง (บาท/เดือน):</label>
@@ -67,20 +86,6 @@
         
         <label>☀️ ประหยัดค่าไฟได้ จากโซลาร์เซลล์/ลดใช้ (บาท/เดือน):</label>
         <input type="number" id="savedElectricity" value="0" min="0" step="any" required>
-
-        <h3>📍 ส่วนที่ 3: ตำแหน่งที่ตั้ง</h3>
-        <button type="button" class="btn-location" id="getLocationBtn">🎯 กดเพื่อดึงพิกัดตำแหน่งปัจจุบัน (GPS)</button>
-        <p style="text-align: center; font-size: 13px; color: #9ca3af; margin: 5px 0 5px 0;">(หรือลากหมุดบนแผนที่เพื่อระบุตำแหน่งที่แม่นยำ)</p>
-        
-        <!-- ข้อความแจ้งเตือนสถานะการดึงพิกัดอัตโนมัติ -->
-        <p id="autoGeoStatus" style="font-size: 13px; font-weight: bold; text-align: center; display: none;"></p>
-        
-        <div id="pickerMap"></div>
-
-        <div class="coord-inputs" style="margin-top: 10px;">
-            <input type="text" id="latitude" readonly required placeholder="ละติจูด">
-            <input type="text" id="longitude" readonly required placeholder="ลองจิจูด">
-        </div>
 
         <button type="submit" class="btn-primary">บันทึกข้อมูลและดูผลประเมิน</button>
     </form>
@@ -139,7 +144,7 @@
 
         statusText.style.display = 'block';
         statusText.innerText = "⏳ กำลังค้นหาพิกัดอัตโนมัติบนแผนที่...";
-        statusText.style.color = "#f59e0b"; // สีส้ม
+        statusText.style.color = "#f59e0b"; 
 
         try {
             // ค้นหาโดยพ่วงคำว่า "ขอนแก่น" เพื่อให้ได้พิกัดในจังหวัดแม่นยำขึ้น
@@ -155,11 +160,11 @@
                 pickerMarker.setLatLng(latlng);
                 updateInputs(pickerMarker.getLatLng());
 
-                statusText.innerText = "✅ ปักหมุดอัตโนมัติสำเร็จ! (สามารถเลื่อนหมุดเพื่อปรับตำแหน่งให้เป๊ะขึ้นได้)";
-                statusText.style.color = "#10b981"; // สีเขียว
+                statusText.innerText = "✅ ปักหมุดอัตโนมัติสำเร็จ! (สามารถขยับหมุดเพื่อปรับตำแหน่งได้)";
+                statusText.style.color = "#10b981"; 
             } else {
                 statusText.innerText = "⚠️ ค้นหาพิกัดอัตโนมัติไม่พบ กรุณาเลื่อนและแตะแผนที่เพื่อปักหมุดด้วยตนเอง";
-                statusText.style.color = "#ef4444"; // สีแดง
+                statusText.style.color = "#ef4444"; 
             }
         } catch (error) {
             statusText.innerText = "❌ เกิดข้อผิดพลาดในการเชื่อมต่อระบบแผนที่";
@@ -179,9 +184,9 @@
                     pickerMap.setView(latlng, 16); pickerMarker.setLatLng(latlng); updateInputs(pickerMarker.getLatLng());
                     btn.innerText = "✅ พบตำแหน่งของคุณแล้ว";
                     btn.style.backgroundColor = "#d1fae5"; btn.style.color = "#047857";
-                    statusText.style.display = 'none'; // ซ่อนสถานะพิมพ์ชื่อ
+                    statusText.style.display = 'none'; 
                 },
-                (error) => { alert("ไม่สามารถดึงตำแหน่งได้ กรุณาแตะเลือกบนแผนที่โดยตรงครับ"); btn.innerText = "🎯 กดเพื่อดึงพิกัดตำแหน่งปัจจุบัน (GPS)"; }
+                (error) => { alert("ไม่สามารถดึงตำแหน่งได้ กรุณาแตะเลือกบนแผนที่โดยตรงครับ"); btn.innerText = "🎯 กดเพื่อใช้พิกัดตำแหน่งปัจจุบัน (GPS)"; }
             );
         }
     });
