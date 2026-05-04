@@ -14,81 +14,33 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <style>
-        :root {
-            --bg-body: #f4fcf7;
-            --bg-card: #ffffff;
-            --primary-green: #2ecc71;
-            --dark-green: #27ae60;
-            --text-main: #2c3e50;
-            --border-color: #d1d5db;
-        }
-
-        body { 
-            font-family: 'Chakra Petch', sans-serif; 
-            background-color: var(--bg-body); 
-            color: var(--text-main);
-            margin: 0; padding: 15px;
-        }
-        
-        .container { 
-            max-width: 650px; margin: auto; 
-            background: var(--bg-card); 
-            padding: 25px; 
-            border-radius: 12px; 
-            box-shadow: 0 4px 15px rgba(46, 204, 113, 0.1); 
-            border-top: 5px solid var(--primary-green);
-        }
-
+        :root { --bg-body: #f4fcf7; --bg-card: #ffffff; --primary-green: #2ecc71; --dark-green: #27ae60; --text-main: #2c3e50; --border-color: #d1d5db; }
+        body { font-family: 'Chakra Petch', sans-serif; background-color: var(--bg-body); color: var(--text-main); margin: 0; padding: 15px; }
+        .container { max-width: 650px; margin: auto; background: var(--bg-card); padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(46, 204, 113, 0.1); border-top: 5px solid var(--primary-green); }
         h2 { text-align: center; color: var(--dark-green); margin-top: 0; font-size: 24px;}
         h3 { color: #34495e; font-size: 18px; border-bottom: 2px solid #e5e7eb; padding-bottom: 8px; margin-top: 25px; }
-        
         label { display: block; margin-top: 15px; font-size: 15px; font-weight: 600; color: #4b5563; }
-        
-        input { 
-            width: 100%; padding: 12px; margin-top: 5px;
-            background: #f9fafb; 
-            border: 1px solid var(--border-color); 
-            color: var(--text-main); border-radius: 8px; 
-            box-sizing: border-box; font-family: 'Chakra Petch', sans-serif; font-size: 16px;
-            transition: all 0.3s ease;
-        }
+        input { width: 100%; padding: 12px; margin-top: 5px; background: #f9fafb; border: 1px solid var(--border-color); color: var(--text-main); border-radius: 8px; box-sizing: border-box; font-family: 'Chakra Petch', sans-serif; font-size: 16px; transition: all 0.3s ease; }
         input:focus { outline: none; border-color: var(--primary-green); background: #fff; box-shadow: 0 0 0 3px rgba(46,204,113,0.2); }
-        
         .waste-section { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: #f0fdf4; padding: 15px; border-radius: 8px; border: 1px solid #bbf7d0; margin-top: 5px;}
         .waste-section label { margin-top: 5px; font-size: 14px; }
-        
-        .btn-primary { 
-            width: 100%; margin-top: 25px; padding: 16px; 
-            background: var(--primary-green); 
-            color: white; 
-            border: none; border-radius: 8px;
-            cursor: pointer; font-weight: bold; font-size: 18px;
-            transition: all 0.3s; box-shadow: 0 4px 6px rgba(46,204,113,0.2);
-        }
+        .btn-primary { width: 100%; margin-top: 25px; padding: 16px; background: var(--primary-green); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 18px; transition: all 0.3s; box-shadow: 0 4px 6px rgba(46,204,113,0.2); }
         .btn-primary:hover { background: var(--dark-green); transform: translateY(-2px); }
-        
-        .btn-location {
-            width: 100%; padding: 12px; background: #e5e7eb; color: #4b5563; border: none; border-radius: 8px;
-            cursor: pointer; font-family: 'Chakra Petch'; margin-bottom: 10px; font-weight: 600; transition: 0.3s;
-        }
+        .btn-location { width: 100%; padding: 12px; background: #e5e7eb; color: #4b5563; border: none; border-radius: 8px; cursor: pointer; font-family: 'Chakra Petch'; margin-bottom: 10px; font-weight: 600; transition: 0.3s; }
         .btn-location:hover { background: #d1d5db; }
-        
         .coord-inputs { display: flex; gap: 10px; }
         .coord-inputs input { background: #e5e7eb; border: none; color: #6b7280; font-size: 14px;}
-        
         .result-box { margin-top: 30px; padding: 25px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; display: none; }
         .chart-container { height: 300px; width: 100%; margin-top: 20px; }
-        
         #pickerMap, #resultMap { height: 250px; width: 100%; border-radius: 8px; border: 1px solid var(--border-color); z-index: 1;}
         #resultMap { height: 350px; margin-top: 20px; }
-
         .rating-badge { display: inline-block; padding: 6px 16px; color: white; font-weight: bold; border-radius: 20px; font-size: 18px; margin-top: 5px;}
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>KHON KAEN LOW CARBON CITY</h2>
+    <h2>🌿 แพลตฟอร์มรักษ์โลก จ.ขอนแก่น</h2>
     <p style="text-align: center; color: #6b7280; font-size: 14px; margin-top: -10px;">ระบบประเมินคาร์บอนฟุตพริ้นท์และคาร์บอนเครดิต</p>
     
     <form id="carbonForm">
@@ -96,10 +48,13 @@
         <input type="text" id="orgName" required placeholder="ระบุชื่อเพื่อบันทึกข้อมูล...">
 
         <h3>🔴 ส่วนที่ 1: การปล่อยก๊าซเรือนกระจก</h3>
-        <label>⚡ ปริมาณการใช้ไฟฟ้า (หน่วย/เดือน):</label>
+        <label>⚡ ค่าไฟฟ้าที่จ่ายจริง (บาท/เดือน):</label>
         <input type="number" id="electricityUsage" value="0" min="0" step="any" required>
-        <label>⛽ ปริมาณการใช้น้ำมันเชื้อเพลิง (ลิตร/เดือน):</label>
+        <p style="font-size: 12px; color: #9ca3af; margin: 3px 0 0 0;">*ระบบจะคำนวณแปลงเป็นหน่วย (kWh) ให้อัตโนมัติ</p>
+
+        <label>⛽ ค่าน้ำมันเชื้อเพลิง (บาท/เดือน):</label>
         <input type="number" id="fuelUsage" value="0" min="0" step="any" required>
+        <p style="font-size: 12px; color: #9ca3af; margin: 3px 0 0 0;">*ระบบจะคำนวณแปลงเป็นลิตรให้อัตโนมัติ (อ้างอิงดีเซล ~32 บาท/ลิตร)</p>
 
         <h3>🟢 ส่วนที่ 2: การลดก๊าซเรือนกระจก</h3>
         <label>♻️ ขยะที่คัดแยกเพื่อส่งรีไซเคิล (กิโลกรัม/เดือน):</label>
@@ -110,7 +65,7 @@
             <div><label>โลหะ/กระป๋อง:</label><input type="number" id="wasteMetal" value="0" min="0" step="any"></div>
         </div>
         
-        <label>☀️ ไฟฟ้าที่ลดได้ หรือผลิตจากโซลาร์เซลล์ (หน่วย/เดือน):</label>
+        <label>☀️ ประหยัดค่าไฟได้ จากโซลาร์เซลล์/ลดใช้ (บาท/เดือน):</label>
         <input type="number" id="savedElectricity" value="0" min="0" step="any" required>
 
         <h3>📍 ส่วนที่ 3: ตำแหน่งที่ตั้ง</h3>
@@ -143,14 +98,18 @@
     const firebaseConfig = { apiKey: "AIzaSyDMMwciq6QoLSaWK6xfdr0U3ynyahtoaSk", authDomain: "studio-a33fe.firebaseapp.com", databaseURL: "https://studio-a33fe-default-rtdb.asia-southeast1.firebasedatabase.app", projectId: "studio-a33fe", storageBucket: "studio-a33fe.firebasestorage.app", messagingSenderId: "753539109404", appId: "1:753539109404:web:3d916565373b192fe645d9" };
     const app = initializeApp(firebaseConfig); const db = getFirestore(app);
 
+    // อัตราการคำนวณมาตรฐาน
     const EF_ELECTRICITY = 0.4999, EF_DIESEL = 2.7446;      
     const EF_PLASTIC = 1.5, EF_PAPER = 0.9, EF_GLASS = 0.3, EF_METAL = 2.0;
+    
+    // อัตราค่าไฟฟ้าและน้ำมันเฉลี่ย สำหรับคำนวณย้อนกลับ
+    const AVG_ELEC_RATE = 4.5; // บาท/หน่วย
+    const AVG_DIESEL_RATE = 32.0; // บาท/ลิตร
 
     let myChart = null; let resultMap = null; 
     Chart.defaults.font.family = "'Chakra Petch', sans-serif";
     Chart.defaults.color = '#4b5563';
 
-    // แผนที่ OSM โทนสว่างปกติ
     const mapTile = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
     const khonkaenCenter = [16.4322, 102.8236]; 
     const pickerMap = L.map('pickerMap').setView(khonkaenCenter, 13);
@@ -182,7 +141,10 @@
     });
 
     const getMarkerIcon = (rating) => {
-        let color = 'red'; if (rating === 'ดีเยี่ยม') color = 'green'; else if (rating === 'ดีมาก') color = 'blue'; else if (rating === 'ดี') color = 'gold';
+        let color = 'red'; 
+        if (rating === 'ดีเยี่ยม') color = 'green'; 
+        else if (rating === 'ดีมาก') color = 'blue'; 
+        else if (rating === 'ดีน้อย' || rating === 'ดี') color = 'gold'; 
         return new L.Icon({ iconUrl: `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-${color}.png`, shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png', iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34] });
     };
 
@@ -193,14 +155,31 @@
         if (isNaN(lat) || isNaN(lng)) return alert("กรุณาระบุพิกัดสถานที่ในแผนที่ก่อนบันทึกข้อมูลครับ");
 
         const orgName = document.getElementById('orgName').value;
-        const totalFootprint = ((parseFloat(document.getElementById('electricityUsage').value)||0)*EF_ELECTRICITY) + ((parseFloat(document.getElementById('fuelUsage').value)||0)*EF_DIESEL);
-        const totalCredit = ((parseFloat(document.getElementById('wastePlastic').value)||0)*EF_PLASTIC) + ((parseFloat(document.getElementById('wastePaper').value)||0)*EF_PAPER) + ((parseFloat(document.getElementById('wasteGlass').value)||0)*EF_GLASS) + ((parseFloat(document.getElementById('wasteMetal').value)||0)*EF_METAL) + ((parseFloat(document.getElementById('savedElectricity').value)||0)*EF_ELECTRICITY);
+        
+        // แปลงค่าเงินบาท เป็นจำนวนหน่วยการใช้พลังงาน
+        const electricityTHB = parseFloat(document.getElementById('electricityUsage').value) || 0;
+        const savedElectricityTHB = parseFloat(document.getElementById('savedElectricity').value) || 0;
+        const fuelTHB = parseFloat(document.getElementById('fuelUsage').value) || 0;
+
+        const electricityKWh = electricityTHB / AVG_ELEC_RATE;
+        const savedElectricityKWh = savedElectricityTHB / AVG_ELEC_RATE;
+        const fuelLiters = fuelTHB / AVG_DIESEL_RATE;
+
+        // ข้อมูลขยะ (เป็นกิโลกรัมเหมือนเดิม)
+        const plastic = parseFloat(document.getElementById('wastePlastic').value) || 0;
+        const paper = parseFloat(document.getElementById('wastePaper').value) || 0;
+        const glass = parseFloat(document.getElementById('wasteGlass').value) || 0;
+        const metal = parseFloat(document.getElementById('wasteMetal').value) || 0;
+
+        // คำนวณคาร์บอน
+        const totalFootprint = (electricityKWh * EF_ELECTRICITY) + (fuelLiters * EF_DIESEL);
+        const totalCredit = (plastic * EF_PLASTIC) + (paper * EF_PAPER) + (glass * EF_GLASS) + (metal * EF_METAL) + (savedElectricityKWh * EF_ELECTRICITY);
 
         let compensationPercent = totalFootprint > 0 ? (totalCredit / totalFootprint) * 100 : (totalCredit > 0 ? 100 : 0);
         let rating = "ต้องปรับปรุง"; let badgeColor = "#ef4444";
         if (compensationPercent >= 50) { rating = "ดีเยี่ยม"; badgeColor = "#10b981"; } 
         else if (compensationPercent >= 30) { rating = "ดีมาก"; badgeColor = "#0ea5e9"; } 
-        else if (compensationPercent >= 10) { rating = "ดี"; badgeColor = "#f59e0b"; } 
+        else if (compensationPercent >= 10) { rating = "ดีน้อย"; badgeColor = "#f59e0b"; } 
 
         const reportData = { organization: orgName, totalFootprint_kgCO2: Number(totalFootprint.toFixed(2)), totalCredit_kgCO2: Number(totalCredit.toFixed(2)), compensationPercent: Number(compensationPercent.toFixed(2)), rating: rating, latitude: lat, longitude: lng, timestamp: new Date() };
 
@@ -250,8 +229,10 @@
             querySnapshot.forEach((doc) => {
                 const data = doc.data();
                 if (data.latitude && data.longitude) {
-                    const marker = L.marker([data.latitude, data.longitude], { icon: getMarkerIcon(data.rating) }).addTo(resultMap);
-                    marker.bindPopup(`<div style="font-family: 'Chakra Petch'; text-align:center;"><b>${data.organization}</b><br>ระดับ: <span style="color:${badgeColor}; font-weight:bold;">${data.rating}</span></div>`);
+                    let displayRating = data.rating;
+                    if (displayRating === "ดี") displayRating = "ดีน้อย";
+                    const marker = L.marker([data.latitude, data.longitude], { icon: getMarkerIcon(displayRating) }).addTo(resultMap);
+                    marker.bindPopup(`<div style="font-family: 'Chakra Petch'; text-align:center;"><b>${data.organization}</b><br>ระดับ: <span style="color:${badgeColor}; font-weight:bold;">${displayRating}</span></div>`);
                     if (data.organization === orgName) marker.openPopup();
                 }
             });
